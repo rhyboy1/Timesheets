@@ -17,603 +17,425 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
         }
-        .timesheet-container {
-            max-width: 1024px;
-            margin: auto;
+        .container {
+            max-width: 80rem;
         }
-        input[type="text"], input[type="date"], input[type="number"], input[type="time"], textarea, select {
-            border-color: #d1d5db;
+        .message-box {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            max-width: 300px;
+            z-index: 1000;
         }
-        /* Custom styles for time inputs */
-        input[type="time"]::-webkit-calendar-picker-indicator {
-            display: none;
+        .rotated-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
         }
-        input[type="time"]::-webkit-inner-spin-button, 
-        input[type="time"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        .checkbox-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-        }
-        .signature-pad {
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            background-color: #fff;
-            cursor: crosshair;
+        .table-cell-input {
+            width: 100%;
+            text-align: center;
         }
     </style>
 </head>
-<body class="p-4 sm:p-8">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="container mx-auto bg-white shadow-xl rounded-2xl p-8 lg:p-12 space-y-8">
+        <header class="text-center space-y-2">
+            <h1 class="text-4xl font-bold text-gray-800">Protech Timesheet</h1>
+            <p class="text-lg text-gray-500">Weekly timesheet submission portal</p>
+        </header>
 
-    <!-- Main App Container -->
-    <div class="timesheet-container bg-white shadow-xl rounded-2xl p-6 sm:p-10 border border-gray-200">
-        <div id="auth-info" class="text-xs text-gray-500 mb-4 flex items-center">
-            <svg class="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-            <span>Authenticated as: <span id="user-id">Loading...</span></span>
-        </div>
-
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">Protech Timesheet</h1>
-        <p class="text-gray-500 mb-8 text-lg">Manage and export your weekly work hours.</p>
-
-        <!-- Employee and Site Information Section -->
-        <div class="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-200">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Employee & Site Details</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <input type="text" id="company-name" class="w-full rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Company Name">
-                <input type="text" id="employee-name" class="w-full rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Employee Name">
-                <input type="text" id="supervisor-name" class="w-full rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Supervisor Name">
-                <input type="text" id="site-name" class="w-full rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Site Name">
-                <input type="text" id="employee-position" class="w-full rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Employee Position">
-                <input type="text" id="supervisor-position" class="w-full rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Supervisor Position">
-                <input type="date" id="we-date" class="w-full rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="WE Date">
-                <input type="text" id="emp-id" class="w-full rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="Employee ID">
-                <input type="text" id="state" class="w-full rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" placeholder="State">
-            </div>
-        </div>
-
-        <!-- Weekly Timesheet Table -->
-        <div class="overflow-x-auto bg-white rounded-xl shadow-inner border border-gray-200 mb-8">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day</th>
-                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shift</th>
-                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start</th>
-                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Finish</th>
-                        <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Lunch<br>(30 min)</th>
-                        <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                        <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">LAHA</th>
-                        <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">LAHA MEAL</th>
-                        <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">TRAVEL<br>AWAY</th>
-                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Docket<br>Number</th>
-                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supervisor<br>Initials</th>
-                        <th class="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="timesheet-body" class="bg-white divide-y divide-gray-200">
-                    <!-- Timesheet entries for each day will be rendered here -->
-                </tbody>
-                <tfoot class="bg-gray-50">
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900" colspan="6">Total Hours</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900" id="total-hours" colspan="6">0</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <!-- Signature Pads Section -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-            <!-- Employee Signature Pad -->
-            <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Employee Signature</h3>
-                <p class="text-sm text-gray-500 mb-4">Click and drag to sign.</p>
-                <canvas id="employee-signature-pad" class="signature-pad w-full h-32"></canvas>
-                <button onclick="clearSignature('employee')" class="mt-2 text-sm text-red-600 hover:text-red-800 transition duration-150">Clear Signature</button>
+        <main class="space-y-6">
+            <div id="authStatus" class="flex flex-col sm:flex-row items-center justify-between p-4 bg-blue-50 rounded-xl shadow-inner border border-blue-200 text-blue-800 font-medium">
+                <span id="userIdDisplay" class="text-sm">User ID: <span id="userIdValue" class="font-mono text-gray-600">Loading...</span></span>
+                <span id="statusMessage" class="text-sm">Initializing...</span>
             </div>
             
-            <!-- Supervisor Signature Pad -->
-            <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Supervisor Signature</h3>
-                <p class="text-sm text-gray-500 mb-4">Click and drag to sign.</p>
-                <canvas id="supervisor-signature-pad" class="signature-pad w-full h-32"></canvas>
-                <button onclick="clearSignature('supervisor')" class="mt-2 text-sm text-red-600 hover:text-red-800 transition duration-150">Clear Signature</button>
+            <!-- Top-level Timesheet Information -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-gray-50 rounded-xl p-4 shadow-sm border border-gray-200">
+                    <label for="companyName" class="block text-sm font-medium text-gray-700">Company Name</label>
+                    <input type="text" id="companyName" onchange="handleHeaderInputChange('companyName', this.value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-800">
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 shadow-sm border border-gray-200">
+                    <label for="employeeName" class="block text-sm font-medium text-gray-700">Employee Name</label>
+                    <input type="text" id="employeeName" onchange="handleHeaderInputChange('employeeName', this.value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-800">
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 shadow-sm border border-gray-200">
+                    <label for="supervisorName" class="block text-sm font-medium text-gray-700">Supervisor Name</label>
+                    <input type="text" id="supervisorName" onchange="handleHeaderInputChange('supervisorName', this.value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-800">
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 shadow-sm border border-gray-200">
+                    <label for="siteName" class="block text-sm font-medium text-gray-700">Site Name</label>
+                    <input type="text" id="siteName" onchange="handleHeaderInputChange('siteName', this.value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-800">
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 shadow-sm border border-gray-200">
+                    <label for="employeePosition" class="block text-sm font-medium text-gray-700">Employee Position</label>
+                    <input type="text" id="employeePosition" onchange="handleHeaderInputChange('employeePosition', this.value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-800">
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 shadow-sm border border-gray-200">
+                    <label for="supervisorPosition" class="block text-sm font-medium text-gray-700">Supervisor Position</label>
+                    <input type="text" id="supervisorPosition" onchange="handleHeaderInputChange('supervisorPosition', this.value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-800">
+                </div>
             </div>
-        </div>
 
-        <!-- PDF Generation and Messages -->
-        <div class="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <button onclick="generatePDF()" class="w-full sm:w-auto flex-1 bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition duration-150 ease-in-out transform hover:scale-105">Generate Timesheet PDF</button>
-            <div id="message-box" class="w-full sm:w-auto flex-1 p-3 text-sm text-center rounded-lg font-medium opacity-0 transition-opacity duration-300"></div>
-        </div>
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner border border-gray-200">
+                <h2 class="text-xl font-bold text-gray-700">Total Hours This Week: <span id="totalHoursDisplay" class="font-extrabold text-indigo-600">00:00</span></h2>
+            </div>
+            
+            <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Day</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Shift</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Start</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">End</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Break</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Hours</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Extra Information</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">LAHA</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">LAHA MEAL</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">TRAVEL AWAY</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Docket Number</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Sup. Initials</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timesheetTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Timesheet rows will be rendered here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <button onclick="saveDataToFirestore()" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 transition duration-300 transform hover:scale-105">
+                    Save Timesheet
+                </button>
+                <button onclick="exportToPdf()" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-full shadow-lg hover:bg-green-600 transition duration-300 transform hover:scale-105">
+                    Generate PDF
+                </button>
+            </div>
+        </main>
     </div>
+
+    <!-- Message Box Container -->
+    <div id="messageBox" class="message-box space-y-2"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
-        // Firebase configuration and app ID are provided by the environment
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase-provided global variables
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        let db, auth, userId;
-        const messageBox = document.getElementById('message-box');
-        let timesheetDocRef;
-
-        // Timesheet data structure, now including signature data URLs
+        let db, auth;
+        let userId = 'anonymous'; // Default to anonymous until authenticated
         let timesheetData = {
-            header: {
-                companyName: '',
-                employeeName: '',
-                supervisorName: '',
-                siteName: '',
-                employeePosition: '',
-                supervisorPosition: '',
-                weDate: '',
-                empId: '',
-                state: '',
-                employeeSignature: '',
-                supervisorSignature: ''
-            },
-            entries: [
-                { day: 'Monday', date: '', shift: '', startTime: '', finishTime: '', total: 0, lunchChecked: false, lahaChecked: false, lahaMealChecked: false, travelChecked: false, docketNumber: '', supervisorInitials: '' },
-                { day: 'Tuesday', date: '', shift: '', startTime: '', finishTime: '', total: 0, lunchChecked: false, lahaChecked: false, lahaMealChecked: false, travelChecked: false, docketNumber: '', supervisorInitials: '' },
-                { day: 'Wednesday', date: '', shift: '', startTime: '', finishTime: '', total: 0, lunchChecked: false, lahaChecked: false, lahaMealChecked: false, travelChecked: false, docketNumber: '', supervisorInitials: '' },
-                { day: 'Thursday', date: '', shift: '', startTime: '', finishTime: '', total: 0, lunchChecked: false, lahaChecked: false, lahaMealChecked: false, travelChecked: false, docketNumber: '', supervisorInitials: '' },
-                { day: 'Friday', date: '', shift: '', startTime: '', finishTime: '', total: 0, lunchChecked: false, lahaChecked: false, lahaMealChecked: false, travelChecked: false, docketNumber: '', supervisorInitials: '' },
-                { day: 'Saturday', date: '', shift: '', startTime: '', finishTime: '', total: 0, lunchChecked: false, lahaChecked: false, lahaMealChecked: false, travelChecked: false, docketNumber: '', supervisorInitials: '' },
-                { day: 'Sunday', date: '', shift: '', startTime: '', finishTime: '', total: 0, lunchChecked: false, lahaChecked: false, lahaMealChecked: false, travelChecked: false, docketNumber: '', supervisorInitials: '' }
+            companyName: "",
+            employeeName: "",
+            supervisorName: "",
+            siteName: "",
+            employeePosition: "",
+            supervisorPosition: "",
+            days: [
+                { day: "Monday", date: "", shift: "D", start: "", end: "", break: "00:30", hours: "00:00", extraInfo: "", laha: false, lahaMeal: false, travelAway: false, docketNumber: "", supInitials: "" },
+                { day: "Tuesday", date: "", shift: "D", start: "", end: "", break: "00:30", hours: "00:00", extraInfo: "", laha: false, lahaMeal: false, travelAway: false, docketNumber: "", supInitials: "" },
+                { day: "Wednesday", date: "", shift: "D", start: "", end: "", break: "00:30", hours: "00:00", extraInfo: "", laha: false, lahaMeal: false, travelAway: false, docketNumber: "", supInitials: "" },
+                { day: "Thursday", date: "", shift: "D", start: "", end: "", break: "00:30", hours: "00:00", extraInfo: "", laha: false, lahaMeal: false, travelAway: false, docketNumber: "", supInitials: "" },
+                { day: "Friday", date: "", shift: "D", start: "", end: "", break: "00:30", hours: "00:00", extraInfo: "", laha: false, lahaMeal: false, travelAway: false, docketNumber: "", supInitials: "" },
+                { day: "Saturday", date: "", shift: "D", start: "", end: "", break: "00:30", hours: "00:00", extraInfo: "", laha: false, lahaMeal: false, travelAway: false, docketNumber: "", supInitials: "" },
+                { day: "Sunday", date: "", shift: "D", start: "", end: "", break: "00:30", hours: "00:00", extraInfo: "", laha: false, lahaMeal: false, travelAway: false, docketNumber: "", supInitials: "" }
             ]
         };
 
-        // Signature pad variables
-        const employeeSignaturePad = document.getElementById('employee-signature-pad');
-        const supervisorSignaturePad = document.getElementById('supervisor-signature-pad');
-        let isDrawing = false;
-        let activePad = null;
-        let authReady = false;
-
-        // Utility function to show messages
-        function showMessage(message, styleClass) {
-            messageBox.textContent = message;
-            messageBox.className = `w-full sm:w-auto flex-1 p-3 text-sm text-center rounded-lg font-medium opacity-100 transition-opacity duration-300 ${styleClass}`;
-            setTimeout(() => {
-                messageBox.className = `w-full sm:w-auto flex-1 p-3 text-sm text-center rounded-lg font-medium opacity-0 transition-opacity duration-300`;
-            }, 5000);
+        // UI Utility functions
+        function showMessage(message, classes = 'bg-blue-100 text-blue-800 border-blue-200') {
+            const messageBox = document.getElementById('messageBox');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `p-4 rounded-lg shadow-md border ${classes} mb-2`;
+            messageDiv.innerHTML = `<p class="font-medium">${message}</p>`;
+            messageBox.appendChild(messageDiv);
+            setTimeout(() => messageDiv.remove(), 5000);
         }
 
-        // Initialize Firebase and Auth
-        async function initializeAppAndAuth() {
-            if (Object.keys(firebaseConfig).length === 0) {
-                showMessage("Firebase config is missing. Cannot initialize.", 'bg-red-100 text-red-800 border-red-200');
-                console.error("Firebase config is missing. Cannot initialize.");
+        // PDF Generation function
+        window.exportToPdf = function() {
+            if (!window.jsPDF || !window.jspdf.jsPDF) {
+                showMessage("Error: PDF library not loaded.", 'bg-red-100 text-red-800 border-red-200');
                 return;
             }
-
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                // Start the authentication process and listen for state changes
-                onAuthStateChanged(auth, (user) => {
-                    authReady = true;
-                    if (user) {
-                        userId = user.uid;
-                        document.getElementById('user-id').textContent = userId;
-                        showMessage("Successfully authenticated.", 'bg-green-100 text-green-800 border-green-200');
-                        startFirestoreListener();
-                        setupSignaturePads();
-                    } else {
-                        // Handle the sign-in
-                        if (initialAuthToken) {
-                            signInWithCustomToken(auth, initialAuthToken).catch(error => {
-                                console.error("Error signing in with custom token:", error);
-                                showMessage(`Auth error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
-                            });
-                        } else {
-                            signInAnonymously(auth).catch(error => {
-                                console.error("Error signing in anonymously:", error);
-                                showMessage(`Auth error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
-                            });
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error("Failed to initialize the app:", error);
-                showMessage(`Failed to initialize. Error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
-            }
-        }
-
-        // Start Firestore listener for real-time updates
-        function startFirestoreListener() {
-            if (!userId) {
-                console.error("User ID is missing, cannot start Firestore listener.");
-                return;
-            }
-            if (!appId) {
-                console.error("App ID is missing, cannot create timesheet document reference.");
-                return;
-            }
-
-            timesheetDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'timesheets', userId);
-
-            onSnapshot(timesheetDocRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    timesheetData = docSnap.data();
-                } else {
-                    saveDataToFirestore(); // Create initial document
-                }
-                renderTimesheet();
-                loadHeaderData();
-                loadSignatures();
-            }, (error) => {
-                console.error("Error fetching timesheet data:", error);
-                showMessage(`Error fetching data: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
-            });
-        }
-        
-        // Loads header data from Firestore into the form
-        function loadHeaderData() {
-            document.getElementById('company-name').value = timesheetData.header.companyName || '';
-            document.getElementById('employee-name').value = timesheetData.header.employeeName || '';
-            document.getElementById('supervisor-name').value = timesheetData.header.supervisorName || '';
-            document.getElementById('site-name').value = timesheetData.header.siteName || '';
-            document.getElementById('employee-position').value = timesheetData.header.employeePosition || '';
-            document.getElementById('supervisor-position').value = timesheetData.header.supervisorPosition || '';
-            document.getElementById('we-date').value = timesheetData.header.weDate || '';
-            document.getElementById('emp-id').value = timesheetData.header.empId || '';
-            document.getElementById('state').value = timesheetData.header.state || '';
-
-            // Attach listeners to update timesheetData.header on input change
-            const headerFields = ['company-name', 'employee-name', 'supervisor-name', 'site-name', 'employee-position', 'supervisor-position', 'we-date', 'emp-id', 'state'];
-            headerFields.forEach(field => {
-                const element = document.getElementById(field);
-                if (element) {
-                    element.oninput = () => {
-                        timesheetData.header[field.replace(/-/g, '')] = element.value;
-                        if (authReady) saveDataToFirestore();
-                    };
-                }
-            });
-        }
-
-        // Renders the timesheet table based on the timesheetData array
-        function renderTimesheet() {
-            const timesheetBody = document.getElementById('timesheet-body');
-            timesheetBody.innerHTML = '';
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
             
-            let totalHours = 0;
+            // Get all header data from inputs
+            const companyName = timesheetData.companyName || 'N/A';
+            const employeeName = timesheetData.employeeName || 'N/A';
+            const supervisorName = timesheetData.supervisorName || 'N/A';
+            const siteName = timesheetData.siteName || 'N/A';
+            const employeePosition = timesheetData.employeePosition || 'N/A';
+            const supervisorPosition = timesheetData.supervisorPosition || 'N/A';
+            const totalHours = calculateTotalHours();
 
-            timesheetData.entries.forEach((entry, index) => {
+            doc.setFontSize(18);
+            doc.text("Protech Weekly Timesheet", 14, 22);
+
+            doc.setFontSize(12);
+            doc.text(`Company Name: ${companyName}`, 14, 32);
+            doc.text(`Employee Name: ${employeeName}`, 14, 39);
+            doc.text(`Supervisor Name: ${supervisorName}`, 14, 46);
+            doc.text(`Site Name: ${siteName}`, 14, 53);
+            doc.text(`Employee Position: ${employeePosition}`, 14, 60);
+            doc.text(`Supervisor Position: ${supervisorPosition}`, 14, 67);
+            doc.text(`Total Hours: ${totalHours}`, 14, 74);
+
+            const tableColumn = ["Day", "Date", "Shift", "Start", "End", "Break", "Hours", "Extra Information", "LAHA", "LAHA MEAL", "TRAVEL AWAY", "Docket Number", "Sup. Initials"];
+            const tableRows = timesheetData.days.map(dayData => [
+                dayData.day,
+                dayData.date,
+                dayData.shift,
+                dayData.start,
+                dayData.end,
+                dayData.break,
+                dayData.hours,
+                dayData.extraInfo,
+                dayData.laha ? 'Yes' : 'No',
+                dayData.lahaMeal ? 'Yes' : 'No',
+                dayData.travelAway ? 'Yes' : 'No',
+                dayData.docketNumber,
+                dayData.supInitials
+            ]);
+
+            doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: 80,
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [243, 244, 246],
+                    textColor: [75, 85, 99],
+                    fontStyle: 'bold',
+                },
+                styles: {
+                    fontSize: 8
+                }
+            });
+
+            doc.save("timesheet.pdf");
+            showMessage("PDF generated successfully!", 'bg-green-100 text-green-800 border-green-200');
+        };
+
+        // Time calculations
+        function calculateHours(start, end, breakTime) {
+            if (!start || !end) return "00:00";
+            const [startH, startM] = start.split(':').map(Number);
+            const [endH, endM] = end.split(':').map(Number);
+            const [breakH, breakM] = breakTime.split(':').map(Number);
+            
+            let totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+            // Handle overnight shifts
+            if (totalMinutes < 0) {
+                totalMinutes += 24 * 60;
+            }
+
+            const breakMinutes = (breakH * 60 + breakM);
+            totalMinutes -= breakMinutes;
+
+            if (totalMinutes < 0) return "00:00";
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        }
+
+        function calculateTotalHours() {
+            let totalMinutes = 0;
+            timesheetData.days.forEach(day => {
+                if (day.hours) {
+                    const [h, m] = day.hours.split(':').map(Number);
+                    totalMinutes += h * 60 + m;
+                }
+            });
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        }
+
+        function handleHeaderInputChange(field, value) {
+            timesheetData[field] = value;
+            saveDataToFirestore();
+        }
+
+        window.handleInputChange = function(event, index, field) {
+            const value = (field === 'laha' || field === 'lahaMeal' || field === 'travelAway') ? event.target.checked : event.target.value;
+            timesheetData.days[index][field] = value;
+            if (field === 'start' || field === 'end' || field === 'break') {
+                timesheetData.days[index].hours = calculateHours(
+                    timesheetData.days[index].start,
+                    timesheetData.days[index].end,
+                    timesheetData.days[index].break
+                );
+            }
+            renderTimesheet();
+            // Automatically save to Firestore on change
+            saveDataToFirestore();
+        }
+
+        function renderTimesheet() {
+            const tableBody = document.getElementById('timesheetTableBody');
+            if (!tableBody) {
+                console.error("Timesheet table body not found.");
+                return;
+            }
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            // Update header info
+            document.getElementById('companyName').value = timesheetData.companyName || '';
+            document.getElementById('employeeName').value = timesheetData.employeeName || '';
+            document.getElementById('supervisorName').value = timesheetData.supervisorName || '';
+            document.getElementById('siteName').value = timesheetData.siteName || '';
+            document.getElementById('employeePosition').value = timesheetData.employeePosition || '';
+            document.getElementById('supervisorPosition').value = timesheetData.supervisorPosition || '';
+            document.getElementById('totalHoursDisplay').textContent = calculateTotalHours();
+
+            timesheetData.days.forEach((dayData, index) => {
                 const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-100 transition-colors duration-150';
+                row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
                 
-                const shiftOptions = `
-                    <option value="">N/A</option>
-                    <option value="D" ${entry.shift === 'D' ? 'selected' : ''}>D</option>
-                    <option value="A" ${entry.shift === 'A' ? 'selected' : ''}>A</option>
-                    <option value="N" ${entry.shift === 'N' ? 'selected' : ''}>N</option>
-                `;
-
                 row.innerHTML = `
-                    <td class="px-2 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${entry.day}</td>
-                    <td class="px-2 py-4 whitespace-nowrap"><input type="date" value="${entry.date}" onchange="updateEntry(${index}, 'date', this.value)" class="w-full rounded-lg px-2 py-1 text-sm"></td>
-                    <td class="px-2 py-4 whitespace-nowrap">
-                        <select onchange="updateEntry(${index}, 'shift', this.value)" class="w-full rounded-lg px-2 py-1 text-sm">
-                            ${shiftOptions}
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${dayData.day}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        <input type="date" value="${dayData.date}" onchange="handleInputChange(event, ${index}, 'date')" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 table-cell-input">
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        <select onchange="handleInputChange(event, ${index}, 'shift')" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 table-cell-input">
+                            <option value="D" ${dayData.shift === 'D' ? 'selected' : ''}>D</option>
+                            <option value="A" ${dayData.shift === 'A' ? 'selected' : ''}>A</option>
+                            <option value="N" ${dayData.shift === 'N' ? 'selected' : ''}>N</option>
                         </select>
                     </td>
-                    <td class="px-2 py-4 whitespace-nowrap"><input type="time" value="${entry.startTime}" onchange="updateEntry(${index}, 'startTime', this.value)" class="w-full rounded-lg px-2 py-1 text-sm"></td>
-                    <td class="px-2 py-4 whitespace-nowrap"><input type="time" value="${entry.finishTime}" onchange="updateEntry(${index}, 'finishTime', this.value)" class="w-full rounded-lg px-2 py-1 text-sm"></td>
-                    <td class="px-2 py-4 whitespace-nowrap"><div class="checkbox-container"><input type="checkbox" ${entry.lunchChecked ? 'checked' : ''} onchange="updateEntry(${index}, 'lunchChecked', this.checked)" class="w-5 h-5 rounded text-blue-600 focus:ring-blue-500"></div></td>
-                    <td class="px-2 py-4 whitespace-nowrap text-sm text-gray-500" id="total-hours-${index}">${calculateDailyTotal(entry)}</td>
-                    <td class="px-2 py-4 whitespace-nowrap"><div class="checkbox-container"><input type="checkbox" ${entry.lahaChecked ? 'checked' : ''} onchange="updateEntry(${index}, 'lahaChecked', this.checked)" class="w-5 h-5 rounded text-blue-600 focus:ring-blue-500"></div></td>
-                    <td class="px-2 py-4 whitespace-nowrap"><div class="checkbox-container"><input type="checkbox" ${entry.lahaMealChecked ? 'checked' : ''} onchange="updateEntry(${index}, 'lahaMealChecked', this.checked)" class="w-5 h-5 rounded text-blue-600 focus:ring-blue-500"></div></td>
-                    <td class="px-2 py-4 whitespace-nowrap"><div class="checkbox-container"><input type="checkbox" ${entry.travelChecked ? 'checked' : ''} onchange="updateEntry(${index}, 'travelChecked', this.checked)" class="w-5 h-5 rounded text-blue-600 focus:ring-blue-500"></div></td>
-                    <td class="px-2 py-4 whitespace-nowrap"><input type="text" value="${entry.docketNumber}" onchange="updateEntry(${index}, 'docketNumber', this.value)" class="w-full rounded-lg px-2 py-1 text-sm"></td>
-                    <td class="px-2 py-4 whitespace-nowrap"><input type="text" value="${entry.supervisorInitials}" onchange="updateEntry(${index}, 'supervisorInitials', this.value)" class="w-full rounded-lg px-2 py-1 text-sm"></td>
-                    <td class="px-2 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button onclick="clearEntry(${index})" class="text-red-600 hover:text-red-900 transition-colors duration-150">Clear</button>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        <input type="time" value="${dayData.start}" onchange="handleInputChange(event, ${index}, 'start')" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 table-cell-input">
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        <input type="time" value="${dayData.end}" onchange="handleInputChange(event, ${index}, 'end')" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 table-cell-input">
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        <input type="time" value="${dayData.break}" onchange="handleInputChange(event, ${index}, 'break')" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 table-cell-input">
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">${dayData.hours}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        <input type="text" value="${dayData.extraInfo}" onchange="handleInputChange(event, ${index}, 'extraInfo')" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 table-cell-input">
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
+                        <input type="checkbox" onchange="handleInputChange(event, ${index}, 'laha')" ${dayData.laha ? 'checked' : ''} class="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
+                        <input type="checkbox" onchange="handleInputChange(event, ${index}, 'lahaMeal')" ${dayData.lahaMeal ? 'checked' : ''} class="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
+                        <input type="checkbox" onchange="handleInputChange(event, ${index}, 'travelAway')" ${dayData.travelAway ? 'checked' : ''} class="rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        <input type="text" value="${dayData.docketNumber}" onchange="handleInputChange(event, ${index}, 'docketNumber')" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 table-cell-input">
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        <input type="text" value="${dayData.supInitials}" onchange="handleInputChange(event, ${index}, 'supInitials')" class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 table-cell-input">
                     </td>
                 `;
-                timesheetBody.appendChild(row);
-                totalHours += parseFloat(calculateDailyTotal(entry)) || 0;
+                tableBody.appendChild(row);
             });
-            document.getElementById('total-hours').textContent = totalHours.toFixed(2);
         }
 
-        // Calculate daily total hours
-        function calculateDailyTotal(entry) {
-            if (!entry.startTime || !entry.finishTime) {
-                return '0.00';
-            }
-            
-            const start = new Date(`1970/01/01 ${entry.startTime}`);
-            const finish = new Date(`1970/01/01 ${entry.finishTime}`);
-            
-            let diff = (finish - start) / (1000 * 60); // Difference in minutes
-
-            if (diff < 0) {
-                diff += 24 * 60; // Handle overnight shifts
-            }
-
-            // Deduct 30 minutes if lunch is checked
-            if (entry.lunchChecked) {
-                diff -= 30;
-            }
-
-            const total = diff / 60;
-            return total >= 0 ? total.toFixed(2) : '0.00';
-        }
-
-        // Update a specific entry field and save to Firestore
-        window.updateEntry = function(index, field, value) {
-            timesheetData.entries[index][field] = value;
-            timesheetData.entries[index].total = calculateDailyTotal(timesheetData.entries[index]);
-            document.getElementById(`total-hours-${index}`).textContent = timesheetData.entries[index].total;
-            
-            let totalHours = timesheetData.entries.reduce((sum, entry) => sum + parseFloat(calculateDailyTotal(entry)), 0);
-            document.getElementById('total-hours').textContent = totalHours.toFixed(2);
-            if (authReady) saveDataToFirestore();
-        }
-
-        // Clear a daily entry
-        window.clearEntry = function(index) {
-            timesheetData.entries[index] = { 
-                day: timesheetData.entries[index].day, 
-                date: '', 
-                shift: '', 
-                startTime: '', 
-                finishTime: '', 
-                total: 0,
-                lunchChecked: false,
-                lahaChecked: false,
-                lahaMealChecked: false,
-                travelChecked: false,
-                docketNumber: '',
-                supervisorInitials: ''
-            };
-            renderTimesheet();
-            if (authReady) saveDataToFirestore();
-        }
-
-        // Saves the current timesheet data to Firestore
-        async function saveDataToFirestore() {
-            if (!userId || !timesheetDocRef) {
-                showMessage("Authentication or document reference error. Cannot save data.", 'bg-red-100 text-red-800 border-red-200');
+        // Firestore functions
+        window.saveDataToFirestore = async function() {
+            if (!userId || userId === 'anonymous' || !db) {
+                console.error("User not authenticated or Firestore not initialized.");
+                showMessage("Error: Cannot save. Please wait for initialization.", 'bg-red-100 text-red-800 border-red-200');
                 return;
             }
 
+            // Update top-level info from input fields
+            timesheetData.companyName = document.getElementById('companyName').value;
+            timesheetData.employeeName = document.getElementById('employeeName').value;
+            timesheetData.supervisorName = document.getElementById('supervisorName').value;
+            timesheetData.siteName = document.getElementById('siteName').value;
+            timesheetData.employeePosition = document.getElementById('employeePosition').value;
+            timesheetData.supervisorPosition = document.getElementById('supervisorPosition').value;
+
             try {
+                const timesheetDocRef = doc(db, 'artifacts', appId, 'users', userId, 'timesheets', 'userTimesheet');
                 await setDoc(timesheetDocRef, timesheetData);
-                showMessage("Timesheet saved successfully!", 'bg-green-100 text-green-800 border-green-200');
+                showMessage("Timesheet saved!", 'bg-green-100 text-green-800 border-green-200');
             } catch (error) {
                 console.error("Error saving document: ", error);
                 showMessage(`Error saving: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
             }
         }
-        
-        // Signature pad functions
-        function setupSignaturePads() {
-            [employeeSignaturePad, supervisorSignaturePad].forEach(canvas => {
-                if (!canvas) return; // Add a check to ensure the canvas element exists
-                const ctx = canvas.getContext('2d');
-                canvas.width = canvas.offsetWidth;
-                canvas.height = canvas.offsetHeight;
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = '#000000';
-                ctx.lineCap = 'round';
-            });
-            
-            employeeSignaturePad.addEventListener('mousedown', (e) => startDrawing(e, 'employee'));
-            employeeSignaturePad.addEventListener('mousemove', draw);
-            employeeSignaturePad.addEventListener('mouseup', endDrawing);
-            employeeSignaturePad.addEventListener('mouseout', endDrawing);
 
-            supervisorSignaturePad.addEventListener('mousedown', (e) => startDrawing(e, 'supervisor'));
-            supervisorSignaturePad.addEventListener('mousemove', draw);
-            supervisorSignaturePad.addEventListener('mouseup', endDrawing);
-            supervisorSignaturePad.addEventListener('mouseout', endDrawing);
-        }
-
-        function startDrawing(e, padType) {
-            isDrawing = true;
-            activePad = padType === 'employee' ? employeeSignaturePad : supervisorSignaturePad;
-            const ctx = activePad.getContext('2d');
-            const rect = activePad.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            const ctx = activePad.getContext('2d');
-            const rect = activePad.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            ctx.lineTo(x, y);
-            ctx.stroke();
-        }
-
-        function endDrawing() {
-            if (!isDrawing) return;
-            isDrawing = false;
-            activePad.getContext('2d').closePath();
-            
-            // Save the signature to timesheetData
-            if (activePad.id === 'employee-signature-pad') {
-                timesheetData.header.employeeSignature = employeeSignaturePad.toDataURL();
-            } else {
-                timesheetData.header.supervisorSignature = supervisorSignaturePad.toDataURL();
-            }
-            if (authReady) saveDataToFirestore();
-        }
-
-        window.clearSignature = function(padType) {
-            const canvas = padType === 'employee' ? employeeSignaturePad : supervisorSignaturePad;
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            if (padType === 'employee') {
-                timesheetData.header.employeeSignature = '';
-            } else {
-                timesheetData.header.supervisorSignature = '';
-            }
-            if (authReady) saveDataToFirestore();
-        }
-        
-        function loadSignatures() {
-            if (timesheetData.header.employeeSignature) {
-                const img = new Image();
-                img.onload = () => {
-                    const ctx = employeeSignaturePad.getContext('2d');
-                    ctx.clearRect(0, 0, employeeSignaturePad.width, employeeSignaturePad.height);
-                    ctx.drawImage(img, 0, 0, employeeSignaturePad.width, employeeSignaturePad.height);
-                };
-                img.src = timesheetData.header.employeeSignature;
-            } else {
-                const ctx = employeeSignaturePad.getContext('2d');
-                ctx.clearRect(0, 0, employeeSignaturePad.width, employeeSignaturePad.height);
+        async function loadTimesheet() {
+            if (!userId || userId === 'anonymous' || !db) {
+                console.error("User not authenticated or Firestore not initialized.");
+                return;
             }
             
-            if (timesheetData.header.supervisorSignature) {
-                const img = new Image();
-                img.onload = () => {
-                    const ctx = supervisorSignaturePad.getContext('2d');
-                    ctx.clearRect(0, 0, supervisorSignaturePad.width, supervisorSignaturePad.height);
-                    ctx.drawImage(img, 0, 0, supervisorSignaturePad.width, supervisorSignaturePad.height);
-                };
-                img.src = timesheetData.header.supervisorSignature;
-            } else {
-                const ctx = supervisorSignaturePad.getContext('2d');
-                ctx.clearRect(0, 0, supervisorSignaturePad.width, supervisorSignaturePad.height);
-            }
-        }
+            const timesheetDocRef = doc(db, 'artifacts', appId, 'users', userId, 'timesheets', 'userTimesheet');
 
-        // Generates and downloads a PDF that mimics the uploaded timesheet
-        function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // --- PDF Layout from Provided Document ---
-            doc.setFont('helvetica', 'normal');
-            
-            // Header Section
-            doc.setFontSize(10);
-            doc.text("Company Name:", 14, 20);
-            doc.text(timesheetData.header.companyName, 50, 20);
-            doc.text("Print Employee Name:", 14, 25);
-            doc.text(timesheetData.header.employeeName, 50, 25);
-            doc.text("Print Supervisor Name:", 14, 30);
-            doc.text(timesheetData.header.supervisorName, 50, 30);
-            doc.text("Site Name:", 14, 35);
-            doc.text(timesheetData.header.siteName, 50, 35);
-            doc.text("Employee Position:", 14, 40);
-            doc.text(timesheetData.header.employeePosition, 50, 40);
-            doc.text("Supervisor Position:", 14, 45);
-            doc.text(timesheetData.header.supervisorPosition, 50, 45);
-
-            doc.text("WE Date:", 110, 25);
-            doc.text(timesheetData.header.weDate, 135, 25);
-            doc.text("Emp ID:", 110, 30);
-            doc.text(timesheetData.header.empId, 135, 30);
-            doc.text("State:", 110, 35);
-            doc.text(timesheetData.header.state, 135, 35);
-            
-            // Timesheet title
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text("PROTECH WEEKLY TIMESHEET", 100, 15, null, null, 'center');
-            doc.setFont('helvetica', 'normal');
-            
-            // Timesheet Table
-            const bodyData = timesheetData.entries.map(entry => {
-                const lahaText = entry.lahaChecked ? "Yes" : "No";
-                const lahaMealText = entry.lahaMealChecked ? "Yes" : "No";
-                const travelText = entry.travelChecked ? "Yes" : "No";
-                
-                return [
-                    entry.day,
-                    entry.date,
-                    entry.shift,
-                    entry.startTime,
-                    entry.finishTime,
-                    entry.lunchChecked ? '00:30' : '', // Mimic the original PDF
-                    entry.total,
-                    '', // Extra Information column, left blank for now
-                    lahaText,
-                    lahaMealText,
-                    travelText,
-                    entry.docketNumber,
-                    entry.supervisorInitials
-                ];
-            });
-
-            doc.autoTable({
-                startY: 55,
-                head: [
-                    ['Day', 'Date', 'Shift\n(D) (A) or (N)', 'Start', 'Finish', 'Meal Break', 'Total', 'Extra Information', 'LAHA', 'LAHA MEAL', 'TRAVEL AWAY', 'Docket Number', 'Supervisor Daily Initials']
-                ],
-                body: bodyData,
-                styles: { fontSize: 7, cellPadding: 1, overflow: 'linebreak' },
-                headStyles: { fillColor: '#e5e7eb', textColor: '#1f2937', halign: 'center', valign: 'middle' },
-                bodyStyles: { textColor: '#4b5563' },
-                alternateRowStyles: { fillColor: '#f9fafb' },
-                columnStyles: {
-                    0: { cellWidth: 15 }, // Day
-                    1: { cellWidth: 15 }, // Date
-                    2: { cellWidth: 15 }, // Shift
-                    3: { cellWidth: 15 }, // Start
-                    4: { cellWidth: 15 }, // Finish
-                    5: { cellWidth: 15 }, // Meal
-                    6: { cellWidth: 15 }, // Total
-                    7: { cellWidth: 20 }, // Extra Info
-                    8: { cellWidth: 10 }, // LAHA
-                    9: { cellWidth: 10 }, // LAHA MEAL
-                    10: { cellWidth: 10 }, // TRAVEL AWAY
-                    11: { cellWidth: 15 }, // Docket
-                    12: { cellWidth: 20 },// Supervisor Initials
-                },
-                didParseCell: function(data) {
-                    if (data.section === 'head') {
-                        data.cell.styles.halign = 'center';
-                        data.cell.styles.valign = 'middle';
-                    }
+            // Listen for real-time updates
+            onSnapshot(timesheetDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    timesheetData = docSnap.data();
+                    showMessage("Timesheet loaded successfully!");
+                } else {
+                    // Create a new timesheet if it doesn't exist
+                    showMessage("No timesheet found. A new one will be created.");
+                    saveDataToFirestore();
                 }
+                renderTimesheet();
+            }, (error) => {
+                console.error("Error fetching timesheet data:", error);
+                showMessage(`Error fetching data: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
             });
-            
-            const totalHours = timesheetData.entries.reduce((sum, entry) => sum + parseFloat(entry.total), 0);
-            doc.text(`Total Hours: ${totalHours.toFixed(2)}`, 14, doc.autoTable.previous.finalY + 10);
-            
-            // Signatures
-            const signatureY = doc.autoTable.previous.finalY + 20;
-            doc.text("Employee Signature:", 14, signatureY);
-            if (timesheetData.header.employeeSignature) {
-                doc.addImage(timesheetData.header.employeeSignature, 'PNG', 50, signatureY - 10, 50, 20);
-            }
-            
-            doc.text("Supervisor Signature:", 110, signatureY);
-            if (timesheetData.header.supervisorSignature) {
-                doc.addImage(timesheetData.header.supervisorSignature, 'PNG', 150, signatureY - 10, 50, 20);
-            }
-            
-            doc.save('protech_timesheet.pdf');
         }
 
-        // Initial render and start the application
-        renderTimesheet();
+        // Main app initialization
+        async function initializeAppAndAuth() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                onAuthStateChanged(auth, async (user) => {
+                    const statusMessage = document.getElementById('statusMessage');
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('userIdValue').textContent = userId;
+                        statusMessage.textContent = 'Authenticated successfully!';
+                        await loadTimesheet();
+                    } else {
+                        statusMessage.textContent = 'Signing in...';
+                        try {
+                            if (initialAuthToken) {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        } catch (error) {
+                            console.error("Failed to sign in:", error);
+                            showMessage(`Failed to sign in. Error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Failed to initialize the app:", error);
+                showMessage(`Failed to initialize. Error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
+            }
+        };
+        
         initializeAppAndAuth();
     </script>
 </body>
