@@ -219,7 +219,9 @@
             });
 
             // Add totals to the end of the table
-            const dailyTotals = days.map(day => days.reduce((sum, d) => sum + (parseFloat(timesheetData.tasks.find(t => t[d])) || 0), 0));
+            const dailyTotals = days.map(day => 
+                timesheetData.tasks.reduce((sum, task) => sum + (parseFloat(task[day]) || 0), 0)
+            );
             const grandTotal = dailyTotals.reduce((sum, total) => sum + total, 0);
 
             const totalRow = ["Daily Totals", "", "", ...dailyTotals.map(t => t.toFixed(1)), grandTotal.toFixed(1)];
@@ -374,6 +376,14 @@
         // --- Firestore & Auth Initialization ---
         const initializeAppAndAuth = async () => {
             try {
+                // Check if the firebaseConfig object is valid
+                if (!firebaseConfig || !firebaseConfig.projectId) {
+                    const errorMessage = "Firebase configuration is missing the 'projectId'. Please ensure your config is correct.";
+                    console.error(errorMessage);
+                    showMessage(`Error: ${errorMessage}`, 'bg-red-100 text-red-800 border-red-200');
+                    return;
+                }
+
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
