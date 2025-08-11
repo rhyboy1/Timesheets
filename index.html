@@ -373,7 +373,8 @@
                 // Get config and token from environment variables
                 const envConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
                 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
-                appId = typeof __app_id !== 'undefined' ? __app_id : null;
+                // Provide a default for appId if the environment variable is not defined
+                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
                 
                 // Fallback to a hardcoded config if environment config is not available
                 const firebaseConfig = envConfig && envConfig.projectId ? envConfig : {
@@ -423,6 +424,12 @@
                         // Determine the correct user ID for data fetching
                         const targetUserId = sharedUserId || userId;
                         
+                        // Check if appId is valid before creating the document reference
+                        if (!appId) {
+                            console.error("App ID is missing, cannot create timesheet document reference.");
+                            showMessage("Error: App ID is missing. Cannot load timesheet.", 'bg-red-100 text-red-800 border-red-200');
+                            return;
+                        }
                         const timesheetDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'timesheets', targetUserId);
 
                         // Set up real-time listener for the timesheet data
