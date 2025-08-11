@@ -824,7 +824,14 @@
         import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase config and token are provided by the canvas environment
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+       const firebaseConfig = {
+  apiKey: "AIzaSyCe_ZHNcao3XUWBPBv8eQgoLpJRkp63Vwg",
+  authDomain: "protechtimesheet.firebaseapp.com",
+  projectId: "protechtimesheet",
+  storageBucket: "protechtimesheet.firebasestorage.app",
+  messagingSenderId: "275584089101",
+  appId: "1:275584089101:web:1b8378dc32cb92ebb5e944"
+};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
@@ -1262,3 +1269,4 @@
     </script>
 </body>
 </html>
+
