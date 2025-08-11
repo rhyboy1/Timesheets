@@ -155,7 +155,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <script type="module">
@@ -163,8 +162,17 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Firebase configuration provided by the user
+        const firebaseConfig = {
+            apiKey: "AIzaSyCe_ZHNcao3XUWBPBv8eQgoLpJRkp63Vwg",
+            authDomain: "protechtimesheet.firebaseapp.com",
+            projectId: "protechtimesheet",
+            storageBucket: "protechtimesheet.firebasestorage.app",
+            messagingSenderId: "275584089101",
+            appId: "1:275584089101:web:1b8378dc32cb92ebb5e944"
+        };
+        
         // Global variables for Firebase configuration provided by the environment
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
         
@@ -372,18 +380,9 @@
             showMessage('Link copied to clipboard!', 'bg-green-100 text-green-800 border-green-200');
         });
 
-
         // --- Firestore & Auth Initialization ---
         const initializeAppAndAuth = async () => {
             try {
-                // Check if the firebaseConfig object is valid
-                if (!firebaseConfig || !firebaseConfig.projectId) {
-                    const errorMessage = "Firebase configuration is missing the 'projectId'. Please ensure your config is correct.";
-                    console.error(errorMessage);
-                    showMessage(`Error: ${errorMessage}`, 'bg-red-100 text-red-800 border-red-200');
-                    return;
-                }
-
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
