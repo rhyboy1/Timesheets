@@ -134,13 +134,20 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        // Global variables provided by the environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // YOUR FIREBASE CONFIGURATION OBJECT
+        const firebaseConfig = {
+            apiKey: "AIzaSyCe_ZHNcao3XUWBPBv8eQgoLpJRkp63Vwg",
+            authDomain: "protechtimesheet.firebaseapp.com",
+            projectId: "protechtimesheet",
+            storageBucket: "protechtimesheet.firebasestorage.app",
+            messagingSenderId: "275584089101",
+            appId: "1:275584089101:web:1b8378dc32cb92ebb5e944"
+        };
+        
+        const appId = 'protechtimesheet';
 
         let db, auth, userId;
         const messageBox = document.getElementById('message-box');
@@ -190,9 +197,9 @@
 
         // Initialize Firebase and Auth
         async function initializeAppAndAuth() {
-            if (Object.keys(firebaseConfig).length === 0) {
-                showMessage("Firebase config is missing.", 'bg-red-100 text-red-800 border-red-200');
-                console.error("Firebase config is missing.");
+            if (Object.keys(firebaseConfig).length === 0 || !appId) {
+                showMessage("Firebase config is missing. Please add your config to the script.", 'bg-red-100 text-red-800 border-red-200');
+                console.error("Firebase config is missing. Cannot initialize.");
                 return;
             }
 
@@ -201,26 +208,17 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        document.getElementById('user-id').textContent = userId;
-                        showMessage("Successfully authenticated.", 'bg-green-100 text-green-800 border-green-200');
-                        startFirestoreListener();
-                        setupSignaturePads();
-                    } else {
-                        try {
-                            if (initialAuthToken) {
-                                await signInWithCustomToken(auth, initialAuthToken);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
-                        } catch (error) {
-                            console.error("Authentication failed:", error);
-                            showMessage(`Authentication failed: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
-                        }
-                    }
-                });
+                // Sign in anonymously and get the user ID
+                const userCredential = await signInAnonymously(auth);
+                const user = userCredential.user;
+                userId = user.uid;
+                document.getElementById('user-id').textContent = userId;
+                showMessage("Successfully authenticated.", 'bg-green-100 text-green-800 border-green-200');
+                
+                // Start the Firestore listener and signature pads after successful authentication
+                startFirestoreListener();
+                setupSignaturePads();
+
             } catch (error) {
                 console.error("Failed to initialize the app:", error);
                 showMessage(`Failed to initialize. Error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
@@ -468,7 +466,8 @@
                 };
                 img.src = timesheetData.header.employeeSignature;
             } else {
-                clearSignature('employee');
+                const ctx = employeeSignaturePad.getContext('2d');
+                ctx.clearRect(0, 0, employeeSignaturePad.width, employeeSignaturePad.height);
             }
             
             if (timesheetData.header.supervisorSignature) {
@@ -480,7 +479,8 @@
                 };
                 img.src = timesheetData.header.supervisorSignature;
             } else {
-                clearSignature('supervisor');
+                const ctx = supervisorSignaturePad.getContext('2d');
+                ctx.clearRect(0, 0, supervisorSignaturePad.width, supervisorSignaturePad.height);
             }
         }
 
