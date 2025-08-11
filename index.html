@@ -83,82 +83,99 @@
 
         <div id="message-box" class="hidden bg-blue-100 text-blue-800 p-4 rounded-xl text-sm font-medium border border-blue-200"></div>
 
-        <div class="flex flex-col md:flex-row gap-4 mb-6">
-            <button id="toggleTimesheetButton" class="px-6 py-3 bg-gray-200 text-gray-800 font-bold rounded-full shadow-md hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 transition-all transform hover:scale-105">
-                Back to my Timesheet
-            </button>
-            <button id="shareTimesheetButton" class="px-6 py-3 bg-green-500 text-white font-bold rounded-full shadow-lg hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all transform hover:scale-105">
-                Share This Timesheet
-            </button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-2xl shadow-inner">
-            <div class="flex flex-col">
-                <label class="text-sm font-semibold text-gray-600 mb-1">Company Name:</label>
-                <input type="text" id="companyName" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
-            </div>
-            <div class="flex flex-col">
-                <label class="text-sm font-semibold text-gray-600 mb-1">Employee Name:</label>
-                <input type="text" id="employeeName" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
-            </div>
-            <div class="flex flex-col">
-                <label class="text-sm font-semibold text-gray-600 mb-1">Supervisor Name:</label>
-                <input type="text" id="supervisorName" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
-            </div>
-            <div class="flex flex-col">
-                <label class="text-sm font-semibold text-gray-600 mb-1">Site Name:</label>
-                <input type="text" id="siteName" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
-            </div>
-            <div class="flex flex-col">
-                <label class="text-sm font-semibold text-gray-600 mb-1">Employee Position:</label>
-                <input type="text" id="employeePosition" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
-            </div>
-            <div class="flex flex-col">
-                <label class="text-sm font-semibold text-gray-600 mb-1">Supervisor Position:</label>
-                <input type="text" id="supervisorPosition" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
-            </div>
-            <div class="flex flex-col">
-                <label class="text-sm font-semibold text-gray-600 mb-1">Week End Date:</label>
-                <input type="date" id="weekEndDate" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
-            </div>
-            <div class="flex flex-col">
-                <label class="text-sm font-semibold text-gray-600 mb-1">Emp ID (from Payslip):</label>
-                <input type="text" id="employeeId" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
-            </div>
-            <div class="flex flex-col">
-                <label class="text-sm font-semibold text-gray-600 mb-1">State:</label>
-                <input type="text" id="state" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
-            </div>
-        </div>
-
-        <h2 class="text-2xl font-bold text-gray-700 mt-8 mb-4">Daily Entries</h2>
-
-        <div id="dailyEntriesContainer" class="space-y-4">
-            <!-- Daily entries will be generated here by JavaScript -->
-        </div>
-
-        <div class="mt-8 p-6 bg-gray-50 rounded-2xl shadow-inner flex flex-col md:flex-row items-center justify-between">
-            <h3 class="text-lg font-bold text-gray-700">Total Hours: <span id="totalHoursDisplay" class="text-blue-600"></span></h3>
-            <button id="exportPdfButton" class="mt-4 md:mt-0 px-6 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all transform hover:scale-105">
-                Export as PDF
-            </button>
-        </div>
-
-        <h2 class="text-2xl font-bold text-gray-700 mt-8 mb-4">Signatures</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="flex flex-col items-center border border-gray-300 rounded-lg p-2">
-                <h3 class="font-semibold text-gray-700">Employee Signature</h3>
-                <canvas id="employeeSignatureCanvas" class="signature-canvas" width="300" height="100"></canvas>
-                <button id="clearEmployeeSigButton" class="mt-2 px-4 py-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 focus:outline-none transition-colors">
-                    Clear
+        <!-- Manual API Key Input Section -->
+        <div id="config-section" class="bg-yellow-50 p-6 rounded-2xl border-2 border-yellow-200 shadow-inner">
+            <h2 class="text-xl font-bold text-yellow-800 mb-2">Configuration Required</h2>
+            <p class="text-sm text-yellow-700 mb-4">
+                Your app failed to connect. Please paste your Firebase Project ID and API Key below.
+            </p>
+            <div class="space-y-3">
+                <input type="text" id="manualProjectId" placeholder="Enter your Project ID (e.g., 'protechtimesheet')" class="w-full p-3 border border-yellow-300 rounded-xl focus:ring-2 focus:ring-yellow-500 transition-all" />
+                <input type="text" id="manualApiKey" placeholder="Enter your API Key (e.g., 'AIza...')" class="w-full p-3 border border-yellow-300 rounded-xl focus:ring-2 focus:ring-yellow-500 transition-all" />
+                <button id="saveConfigButton" class="w-full px-6 py-3 bg-yellow-500 text-white font-bold rounded-full shadow-lg hover:bg-yellow-600 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition-all transform hover:scale-105">
+                    Save and Reload
                 </button>
             </div>
-            <div class="flex flex-col items-center border border-gray-300 rounded-lg p-2">
-                <h3 class="font-semibold text-gray-700">Supervisor Signature</h3>
-                <canvas id="supervisorSignatureCanvas" class="signature-canvas" width="300" height="100"></canvas>
-                <button id="clearSupervisorSigButton" class="mt-2 px-4 py-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 focus:outline-none transition-colors">
-                    Clear
+        </div>
+        
+        <div id="app-content" class="hidden">
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <button id="toggleTimesheetButton" class="px-6 py-3 bg-gray-200 text-gray-800 font-bold rounded-full shadow-md hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 transition-all transform hover:scale-105">
+                    Back to my Timesheet
                 </button>
+                <button id="shareTimesheetButton" class="px-6 py-3 bg-green-500 text-white font-bold rounded-full shadow-lg hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all transform hover:scale-105">
+                    Share This Timesheet
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-2xl shadow-inner">
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Company Name:</label>
+                    <input type="text" id="companyName" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Employee Name:</label>
+                    <input type="text" id="employeeName" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Supervisor Name:</label>
+                    <input type="text" id="supervisorName" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Site Name:</label>
+                    <input type="text" id="siteName" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Employee Position:</label>
+                    <input type="text" id="employeePosition" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Supervisor Position:</label>
+                    <input type="text" id="supervisorPosition" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Week End Date:</label>
+                    <input type="date" id="weekEndDate" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Emp ID (from Payslip):</label>
+                    <input type="text" id="employeeId" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">State:</label>
+                    <input type="text" id="state" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" />
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-700 mt-8 mb-4">Daily Entries</h2>
+
+            <div id="dailyEntriesContainer" class="space-y-4">
+                <!-- Daily entries will be generated here by JavaScript -->
+            </div>
+
+            <div class="mt-8 p-6 bg-gray-50 rounded-2xl shadow-inner flex flex-col md:flex-row items-center justify-between">
+                <h3 class="text-lg font-bold text-gray-700">Total Hours: <span id="totalHoursDisplay" class="text-blue-600"></span></h3>
+                <button id="exportPdfButton" class="mt-4 md:mt-0 px-6 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all transform hover:scale-105">
+                    Export as PDF
+                </button>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-700 mt-8 mb-4">Signatures</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="flex flex-col items-center border border-gray-300 rounded-lg p-2">
+                    <h3 class="font-semibold text-gray-700">Employee Signature</h3>
+                    <canvas id="employeeSignatureCanvas" class="signature-canvas" width="300" height="100"></canvas>
+                    <button id="clearEmployeeSigButton" class="mt-2 px-4 py-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 focus:outline-none transition-colors">
+                        Clear
+                    </button>
+                </div>
+                <div class="flex flex-col items-center border border-gray-300 rounded-lg p-2">
+                    <h3 class="font-semibold text-gray-700">Supervisor Signature</h3>
+                    <canvas id="supervisorSignatureCanvas" class="signature-canvas" width="300" height="100"></canvas>
+                    <button id="clearSupervisorSigButton" class="mt-2 px-4 py-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 focus:outline-none transition-colors">
+                        Clear
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -169,9 +186,9 @@
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables provided by the Canvas environment
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        let providedFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        let providedAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         let timesheetData = {
             companyName: '', employeeName: '', supervisorName: '', siteName: '',
@@ -193,10 +210,20 @@
         let unsubscribe = null;
         const loadingScreen = document.getElementById('loading-screen');
         const appContainer = document.getElementById('app-container');
+        const appContent = document.getElementById('app-content');
+        const configSection = document.getElementById('config-section');
         const messageBox = document.getElementById('message-box');
         const errorModal = document.getElementById('error-modal');
         const shareTimesheetButton = document.getElementById('shareTimesheetButton');
         const toggleTimesheetButton = document.getElementById('toggleTimesheetButton');
+        const saveConfigButton = document.getElementById('saveConfigButton');
+        
+        // This is a simplified way to get a config if it's already stored,
+        // which may have been the case with the previous versions
+        const getStoredConfig = () => {
+             const storedConfig = localStorage.getItem('firebaseConfig');
+             return storedConfig ? JSON.parse(storedConfig) : null;
+        };
 
         const b64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
             const byteCharacters = atob(b64Data.split(',')[1]);
@@ -574,9 +601,9 @@
 
         const getTimesheetDocRef = () => {
             if (timesheetId) {
-                return doc(db, `artifacts/${appId}/public/data/timesheets/${timesheetId}`);
+                return doc(db, `artifacts/${providedAppId}/public/data/timesheets/${timesheetId}`);
             }
-            return doc(db, `artifacts/${appId}/users/${userId}/timesheets/draftTimesheet`);
+            return doc(db, `artifacts/${providedAppId}/users/${userId}/timesheets/draftTimesheet`);
         };
 
         const setupTimesheetListener = () => {
@@ -589,7 +616,6 @@
                     timesheetData = docSnap.data();
                     showMessage('Data loaded from the cloud.', 'bg-blue-100 text-blue-800 border-blue-200');
                 } else {
-                    // Create a default timesheet if one doesn't exist
                     setDoc(docRef, timesheetData);
                     showMessage('New timesheet created.', 'bg-blue-100 text-blue-800 border-blue-200');
                 }
@@ -609,13 +635,12 @@
             if (!timesheetData || !db) return;
 
             const newTimesheetId = crypto.randomUUID();
-            const publicDocRef = doc(db, `artifacts/${appId}/public/data/timesheets/${newTimesheetId}`);
+            const publicDocRef = doc(db, `artifacts/${providedAppId}/public/data/timesheets/${newTimesheetId}`);
 
             try {
                 await setDoc(publicDocRef, timesheetData);
                 const shareableUrl = `${window.location.origin}${window.location.pathname}?timesheetId=${newTimesheetId}`;
                 
-                // Copy the URL to clipboard
                 const dummyInput = document.createElement('input');
                 document.body.appendChild(dummyInput);
                 dummyInput.value = shareableUrl;
@@ -625,7 +650,6 @@
 
                 showMessage(`Link copied to clipboard! Share this URL with your supervisor: ${shareableUrl}`, 'bg-green-100 text-green-800 border-green-200');
 
-                // Redirect to the new shared timesheet
                 window.history.pushState({}, '', shareableUrl);
                 timesheetId = newTimesheetId;
                 setupTimesheetListener();
@@ -642,13 +666,19 @@
             setupTimesheetListener();
         };
 
-        const initializeAppAndAuth = async () => {
+        const initializeAppAndAuth = async (config) => {
+            loadingScreen.style.display = 'flex';
+            appContainer.style.display = 'none';
+
             try {
-                const app = initializeApp(firebaseConfig);
+                if (!config || !config.apiKey || !config.projectId) {
+                    throw new Error("Missing Firebase configuration.");
+                }
+
+                const app = initializeApp(config);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // Use onAuthStateChanged for a more reliable auth flow
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
@@ -657,21 +687,19 @@
                         timesheetId = parseUrlForTimesheetId();
                         setupTimesheetListener();
 
-                        // Hide loading and show app
                         loadingScreen.style.display = 'none';
                         appContainer.style.display = 'block';
+                        configSection.style.display = 'none';
+                        appContent.style.display = 'block';
 
-                        // Signature pads setup
                         setupSignaturePad('employeeSignatureCanvas', 'employee');
                         setupSignaturePad('supervisorSignatureCanvas', 'supervisor');
 
-                        // Event listeners for top-level fields
                         document.querySelectorAll('input:not([data-index]), select:not([data-index])').forEach(element => {
                             element.addEventListener('input', handleInput);
                             element.addEventListener('change', handleInput);
                         });
 
-                        // Event delegation for dynamically created daily entry fields
                         document.getElementById('dailyEntriesContainer').addEventListener('input', handleInput);
                         document.getElementById('dailyEntriesContainer').addEventListener('change', handleInput);
 
@@ -679,7 +707,6 @@
                         document.getElementById('shareTimesheetButton').addEventListener('click', shareTimesheet);
                         document.getElementById('toggleTimesheetButton').addEventListener('click', toggleTimesheet);
                     } else {
-                        // Sign in anonymously if no user is found
                         await signInWithCustomToken(auth, initialAuthToken).catch(() => signInAnonymously(auth));
                     }
                 });
@@ -687,11 +714,32 @@
             } catch (error) {
                 console.error("Failed to initialize the app:", error);
                 loadingScreen.style.display = 'none';
+                appContainer.style.display = 'block';
+                configSection.style.display = 'block';
+                appContent.style.display = 'none';
+                showMessage(`Failed to initialize with provided key. Please check your config. Error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
                 showModal(`Failed to initialize the app. Details: ${error.message}`);
             }
         };
-
-        initializeAppAndAuth();
+        
+        saveConfigButton.addEventListener('click', () => {
+            const projectId = document.getElementById('manualProjectId').value;
+            const apiKey = document.getElementById('manualApiKey').value;
+            const newConfig = {
+                apiKey: apiKey,
+                authDomain: `${projectId}.firebaseapp.com`,
+                projectId: projectId,
+                storageBucket: `${projectId}.appspot.com`,
+                messagingSenderId: "", // Not critical for this app
+                appId: "" // Not critical for this app
+            };
+            
+            // This is the most crucial part. We are now relying on manual input.
+            initializeAppAndAuth(newConfig);
+        });
+        
+        // Initial app check
+        initializeAppAndAuth(providedFirebaseConfig || getStoredConfig());
     </script>
 </body>
 </html>
