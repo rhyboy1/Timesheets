@@ -55,6 +55,15 @@
 
         <div id="message-box" class="hidden bg-blue-100 text-blue-800 p-4 rounded-xl text-sm font-medium border border-blue-200"></div>
 
+        <div class="flex flex-col md:flex-row gap-4 mb-6">
+            <button id="toggleTimesheetButton" class="px-6 py-3 bg-gray-200 text-gray-800 font-bold rounded-full shadow-md hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 transition-all transform hover:scale-105">
+                Back to my Timesheet
+            </button>
+            <button id="shareTimesheetButton" class="px-6 py-3 bg-green-500 text-white font-bold rounded-full shadow-lg hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all transform hover:scale-105">
+                Share This Timesheet
+            </button>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-2xl shadow-inner">
             <div class="flex flex-col">
                 <label class="text-sm font-semibold text-gray-600 mb-1">Company Name:</label>
@@ -129,7 +138,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables provided by the Canvas environment
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
@@ -152,10 +161,13 @@
             totalHours: '',
         };
 
-        let db, auth, userId;
+        let db, auth, userId, timesheetId = null;
+        let unsubscribe = null;
         const loadingScreen = document.getElementById('loading-screen');
         const appContainer = document.getElementById('app-container');
         const messageBox = document.getElementById('message-box');
+        const shareTimesheetButton = document.getElementById('shareTimesheetButton');
+        const toggleTimesheetButton = document.getElementById('toggleTimesheetButton');
 
         const b64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
             const byteCharacters = atob(b64Data.split(',')[1]);
@@ -173,16 +185,17 @@
         };
 
         const updateUI = () => {
-            document.getElementById('companyName').value = timesheetData.companyName;
-            document.getElementById('employeeName').value = timesheetData.employeeName;
-            document.getElementById('supervisorName').value = timesheetData.supervisorName;
-            document.getElementById('siteName').value = timesheetData.siteName;
-            document.getElementById('employeePosition').value = timesheetData.employeePosition;
-            document.getElementById('supervisorPosition').value = timesheetData.supervisorPosition;
-            document.getElementById('weekEndDate').value = timesheetData.weekEndDate;
-            document.getElementById('employeeId').value = timesheetData.employeeId;
-            document.getElementById('state').value = timesheetData.state;
-            document.getElementById('totalHoursDisplay').textContent = timesheetData.totalHours;
+            if (!timesheetData) return;
+            document.getElementById('companyName').value = timesheetData.companyName || '';
+            document.getElementById('employeeName').value = timesheetData.employeeName || '';
+            document.getElementById('supervisorName').value = timesheetData.supervisorName || '';
+            document.getElementById('siteName').value = timesheetData.siteName || '';
+            document.getElementById('employeePosition').value = timesheetData.employeePosition || '';
+            document.getElementById('supervisorPosition').value = timesheetData.supervisorPosition || '';
+            document.getElementById('weekEndDate').value = timesheetData.weekEndDate || '';
+            document.getElementById('employeeId').value = timesheetData.employeeId || '';
+            document.getElementById('state').value = timesheetData.state || '';
+            document.getElementById('totalHoursDisplay').textContent = timesheetData.totalHours || '00:00';
             document.getElementById('userIdDisplay').textContent = userId;
 
             const dailyEntriesContainer = document.getElementById('dailyEntriesContainer');
@@ -195,7 +208,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             <div class="flex flex-col">
                                 <label class="text-xs font-semibold text-gray-500 mb-1">Date:</label>
-                                <input type="date" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="date" value="${entry.date}" />
+                                <input type="date" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="date" value="${entry.date || ''}" />
                             </div>
                             <div class="flex flex-col">
                                 <label class="text-xs font-semibold text-gray-500 mb-1">Shift (D/A/N):</label>
@@ -208,23 +221,23 @@
                             </div>
                             <div class="flex flex-col">
                                 <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (24h):</label>
-                                <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="start" value="${entry.start}" />
+                                <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="start" value="${entry.start || ''}" />
                             </div>
                             <div class="flex flex-col">
                                 <label class="text-xs font-semibold text-gray-500 mb-1">End Time (24h):</label>
-                                <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="end" value="${entry.end}" />
+                                <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="end" value="${entry.end || ''}" />
                             </div>
                             <div class="flex flex-col">
                                 <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
-                                <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="meal" value="${entry.meal}" />
+                                <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="meal" value="${entry.meal || '00:30'}" />
                             </div>
                             <div class="flex flex-col">
                                 <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
-                                <input type="text" class="p-2 border border-gray-300 bg-gray-100 rounded-lg text-sm" value="${entry.total}" readonly />
+                                <input type="text" class="p-2 border border-gray-300 bg-gray-100 rounded-lg text-sm" value="${entry.total || '00:00'}" readonly />
                             </div>
                             <div class="flex flex-col col-span-1 md:col-span-2 lg:col-span-1">
                                 <label class="text-xs font-semibold text-gray-500 mb-1">Extra Information:</label>
-                                <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="extraInfo" value="${entry.extraInfo}" />
+                                <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="extraInfo" value="${entry.extraInfo || ''}" />
                             </div>
                             <div class="flex items-center space-x-2">
                                 <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-index="${index}" data-field="laha" ${entry.laha ? 'checked' : ''} />
@@ -240,11 +253,11 @@
                             </div>
                             <div class="flex flex-col">
                                 <label class="text-xs font-semibold text-gray-500 mb-1">Docket Number:</label>
-                                <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="docket" value="${entry.docket}" />
+                                <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="docket" value="${entry.docket || ''}" />
                             </div>
                             <div class="flex flex-col">
                                 <label class="text-xs font-semibold text-gray-500 mb-1">Supervisor Daily Initials:</label>
-                                <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="supervisorInitials" value="${entry.supervisorInitials}" />
+                                <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="${index}" data-field="supervisorInitials" value="${entry.supervisorInitials || ''}" />
                             </div>
                         </div>
                     </div>
@@ -253,13 +266,24 @@
             });
             drawSignature('employee');
             drawSignature('supervisor');
+
+            // Hide/show buttons based on whether it's a shared timesheet
+            if (timesheetId) {
+                shareTimesheetButton.style.display = 'none';
+                toggleTimesheetButton.style.display = 'block';
+                showMessage(`Viewing shared timesheet ID: ${timesheetId}.`, 'bg-yellow-100 text-yellow-800 border-yellow-200');
+            } else {
+                shareTimesheetButton.style.display = 'block';
+                toggleTimesheetButton.style.display = 'none';
+                showMessage('Editing your private draft timesheet.', 'bg-blue-100 text-blue-800 border-blue-200');
+            }
         };
 
         const saveTimesheet = async (data) => {
             if (!db || !userId) return;
-            const timesheetDocRef = doc(db, `artifacts/${appId}/users/${userId}/timesheets/currentTimesheet`);
+            const docRef = getTimesheetDocRef();
             try {
-                await setDoc(timesheetDocRef, data, { merge: true });
+                await setDoc(docRef, data, { merge: true });
                 showMessage('Timesheet saved successfully!', 'bg-green-100 text-green-800 border-green-200');
             } catch (error) {
                 console.error("Error saving timesheet:", error);
@@ -271,19 +295,20 @@
             messageBox.textContent = msg;
             messageBox.className = `p-4 rounded-xl text-sm font-medium border ${classes}`;
             messageBox.style.display = 'block';
-            setTimeout(() => {
-                messageBox.style.display = 'none';
-            }, 5000);
         };
+        
+        const hideMessage = () => {
+             messageBox.style.display = 'none';
+        }
 
         const calculateTotals = () => {
             let totalMinutesAll = 0;
             timesheetData.dailyEntries.forEach(entry => {
-                const start = entry.start.split(':').map(Number);
-                const end = entry.end.split(':').map(Number);
-                const meal = entry.meal.split(':').map(Number);
+                const start = entry.start ? entry.start.split(':').map(Number) : null;
+                const end = entry.end ? entry.end.split(':').map(Number) : null;
+                const meal = entry.meal ? entry.meal.split(':').map(Number) : null;
 
-                if (start.length === 2 && end.length === 2) {
+                if (start && end && meal) {
                     const startTime = start[0] * 60 + start[1];
                     const endTime = end[0] * 60 + end[1];
                     const mealTime = meal[0] * 60 + meal[1];
@@ -332,6 +357,9 @@
             let isDrawing = false;
             let lastX = 0;
             let lastY = 0;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
 
             const draw = (e) => {
                 if (!isDrawing) return;
@@ -510,6 +538,76 @@
             doc.save('Protech_Timesheet.pdf');
         };
 
+        const getTimesheetDocRef = () => {
+            if (timesheetId) {
+                return doc(db, `artifacts/${appId}/public/data/timesheets/${timesheetId}`);
+            }
+            return doc(db, `artifacts/${appId}/users/${userId}/timesheets/draftTimesheet`);
+        };
+
+        const setupTimesheetListener = () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+            const docRef = getTimesheetDocRef();
+            unsubscribe = onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    timesheetData = docSnap.data();
+                    showMessage('Data loaded from the cloud.', 'bg-blue-100 text-blue-800 border-blue-200');
+                } else {
+                    // Create a default timesheet if one doesn't exist
+                    setDoc(docRef, timesheetData);
+                    showMessage('New timesheet created.', 'bg-blue-100 text-blue-800 border-blue-200');
+                }
+                updateUI();
+            }, (error) => {
+                console.error("Error fetching timesheet:", error);
+                showMessage('Failed to load timesheet data.', 'bg-red-100 text-red-800 border-red-200');
+            });
+        };
+        
+        const parseUrlForTimesheetId = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('timesheetId');
+        };
+
+        const shareTimesheet = async () => {
+            if (!timesheetData || !db) return;
+
+            const newTimesheetId = crypto.randomUUID();
+            const publicDocRef = doc(db, `artifacts/${appId}/public/data/timesheets/${newTimesheetId}`);
+
+            try {
+                await setDoc(publicDocRef, timesheetData);
+                const shareableUrl = `${window.location.origin}${window.location.pathname}?timesheetId=${newTimesheetId}`;
+                
+                // Copy the URL to clipboard
+                const dummyInput = document.createElement('input');
+                document.body.appendChild(dummyInput);
+                dummyInput.value = shareableUrl;
+                dummyInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummyInput);
+
+                showMessage(`Link copied to clipboard! Share this URL with your supervisor: ${shareableUrl}`, 'bg-green-100 text-green-800 border-green-200');
+
+                // Redirect to the new shared timesheet
+                window.history.pushState({}, '', shareableUrl);
+                timesheetId = newTimesheetId;
+                setupTimesheetListener();
+
+            } catch (error) {
+                console.error('Error sharing timesheet:', error);
+                showMessage('Failed to share timesheet.', 'bg-red-100 text-red-800 border-red-200');
+            }
+        };
+
+        const toggleTimesheet = () => {
+            window.history.pushState({}, '', window.location.pathname);
+            timesheetId = null;
+            setupTimesheetListener();
+        };
+
         // Initialize Firebase and set up event listeners on DOMContentLoaded
         document.addEventListener('DOMContentLoaded', async () => {
             const showFatalError = (msg) => {
@@ -538,23 +636,12 @@
                         // This case should not be reached with the current auth logic, but as a fallback
                         userId = crypto.randomUUID();
                     }
+
+                    timesheetId = parseUrlForTimesheetId();
+                    setupTimesheetListener();
+
                     loadingScreen.style.display = 'none';
                     appContainer.style.display = 'block';
-
-                    const timesheetDocRef = doc(db, `artifacts/${appId}/users/${userId}/timesheets/currentTimesheet`);
-                    onSnapshot(timesheetDocRef, (docSnap) => {
-                        if (docSnap.exists()) {
-                            timesheetData = docSnap.data();
-                            showMessage('Data loaded from the cloud.', 'bg-blue-100 text-blue-800 border-blue-200');
-                        } else {
-                            setDoc(timesheetDocRef, timesheetData);
-                            showMessage('New timesheet created.', 'bg-blue-100 text-blue-800 border-blue-200');
-                        }
-                        updateUI();
-                    }, (error) => {
-                        console.error("Error fetching timesheet:", error);
-                        showMessage('Failed to load timesheet data.', 'bg-red-100 text-red-800 border-red-200');
-                    });
                 });
             } catch (error) {
                 console.error("Error initializing Firebase:", error);
@@ -572,6 +659,9 @@
             document.getElementById('dailyEntriesContainer').addEventListener('change', handleInput);
 
             document.getElementById('exportPdfButton').addEventListener('click', exportAsPdf);
+            document.getElementById('shareTimesheetButton').addEventListener('click', shareTimesheet);
+            document.getElementById('toggleTimesheetButton').addEventListener('click', toggleTimesheet);
+
 
             // Signature pads setup
             setupSignaturePad('employeeSignatureCanvas', 'employee');
