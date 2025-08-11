@@ -347,7 +347,7 @@
                 timesheetData[`${type}Signature`] = canvas.toDataURL('image/png');
                 saveTimesheet(timesheetData);
             };
-            
+
             canvas.addEventListener('mousedown', (e) => {
                 isDrawing = true;
                 [lastX, lastY] = [e.offsetX, e.offsetY];
@@ -565,7 +565,7 @@
             document.getElementById('dailyEntriesContainer').addEventListener('change', handleInput);
 
             document.getElementById('exportPdfButton').addEventListener('click', exportAsPdf);
-            
+
             // Signature pads setup
             setupSignaturePad('employeeSignatureCanvas', 'employee');
             setupSignaturePad('supervisorSignatureCanvas', 'supervisor');
