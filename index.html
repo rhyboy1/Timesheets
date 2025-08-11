@@ -671,11 +671,11 @@
         };
 
         /**
-         * Calculates the total hours for each day and the grand total for the week.
+         * Calculates the total hours for a single day and the grand total for the week.
          */
         const calculateTotals = () => {
             let totalMinutesAll = 0;
-            timesheetData.dailyEntries.forEach(entry => {
+            timesheetData.dailyEntries.forEach((entry, index) => {
                 const start = entry.start ? entry.start.split(':').map(Number) : null;
                 const end = entry.end ? entry.end.split(':').map(Number) : null;
                 const meal = entry.meal ? entry.meal.split(':').map(Number) : null;
@@ -692,6 +692,13 @@
                 } else {
                     entry.total = '00:00';
                 }
+
+                // Update the total hours field for the current day immediately
+                const dailyTotalInput = document.querySelector(`[data-index="${index}"][data-field="total"]`);
+                if (dailyTotalInput) {
+                    dailyTotalInput.value = entry.total;
+                }
+
                 if (entry.total) {
                     const [hours, minutes] = entry.total.split(':').map(Number);
                     totalMinutesAll += hours * 60 + minutes;
@@ -718,10 +725,8 @@
                 } else {
                     entry[field] = target.value;
                 }
-                // --- FIX: Recalculate totals specifically when time fields change ---
-                if (field === 'start' || field === 'end' || field === 'meal') {
-                    calculateTotals();
-                }
+                // FIX: Call calculateTotals after every relevant input, not just a conditional check
+                calculateTotals();
             } else {
                 timesheetData[target.id] = target.value;
             }
@@ -952,6 +957,8 @@
                     setDoc(docRef, timesheetData);
                     showMessage('New timesheet created.', 'bg-blue-100 text-blue-800 border-blue-200');
                 }
+                // Call calculateTotals to ensure all displayed totals are correct after a data load
+                calculateTotals();
                 updateUI();
             }, (error) => {
                 console.error("Error fetching timesheet:", error);
@@ -1042,7 +1049,7 @@
                         document.getElementById('shareTimesheetButton').addEventListener('click', shareTimesheet);
                         document.getElementById('toggleTimesheetButton').addEventListener('click', toggleTimesheet);
 
-                        updateUI();
+                        // The initial update is now handled by the onSnapshot listener, which is more reliable.
 
                     } else {
                         // Sign in anonymously if no user is found, using the provided token if available
