@@ -284,7 +284,7 @@
             const docRef = getTimesheetDocRef();
             try {
                 await setDoc(docRef, data, { merge: true });
-                showMessage('Timesheet saved successfully!', 'bg-green-100 text-green-800 border-green-200');
+                hideMessage();
             } catch (error) {
                 console.error("Error saving timesheet:", error);
                 showMessage('Failed to save timesheet.', 'bg-red-100 text-red-800 border-red-200');
@@ -622,50 +622,56 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // Correctly handle authentication using the provided token
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                onAuthStateChanged(auth, (user) => {
+                // Set up the authentication state observer first
+                onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
                     } else {
-                        // This case should not be reached with the current auth logic, but as a fallback
-                        userId = crypto.randomUUID();
+                        // If for some reason the user is not authenticated, we sign in anonymously.
+                        // This should handle the edge case where the initial token fails.
+                        await signInAnonymously(auth);
+                        userId = auth.currentUser.uid;
                     }
+                    console.log('Firebase user authenticated with ID:', userId);
 
+                    // Once authenticated, determine timesheet ID and set up the listener
                     timesheetId = parseUrlForTimesheetId();
                     setupTimesheetListener();
 
+                    // Hide loading and show app
                     loadingScreen.style.display = 'none';
                     appContainer.style.display = 'block';
+
+                    // Signature pads setup
+                    setupSignaturePad('employeeSignatureCanvas', 'employee');
+                    setupSignaturePad('supervisorSignatureCanvas', 'supervisor');
+
+                    // Event listeners for top-level fields
+                    document.querySelectorAll('input:not([data-index]), select:not([data-index])').forEach(element => {
+                        element.addEventListener('input', handleInput);
+                        element.addEventListener('change', handleInput);
+                    });
+
+                    // Event delegation for dynamically created daily entry fields
+                    document.getElementById('dailyEntriesContainer').addEventListener('input', handleInput);
+                    document.getElementById('dailyEntriesContainer').addEventListener('change', handleInput);
+
+                    document.getElementById('exportPdfButton').addEventListener('click', exportAsPdf);
+                    document.getElementById('shareTimesheetButton').addEventListener('click', shareTimesheet);
+                    document.getElementById('toggleTimesheetButton').addEventListener('click', toggleTimesheet);
                 });
+
+                // Now attempt to sign in with the custom token.
+                // onAuthStateChanged will handle the rest.
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken).catch(error => {
+                        console.error('Custom token sign-in failed:', error);
+                    });
+                }
             } catch (error) {
                 console.error("Error initializing Firebase:", error);
                 showFatalError('Failed to initialize the app. Please check the console for details.');
             }
-
-            // Event listeners for top-level fields
-            document.querySelectorAll('input:not([data-index]), select:not([data-index])').forEach(element => {
-                element.addEventListener('input', handleInput);
-                element.addEventListener('change', handleInput);
-            });
-
-            // Event delegation for dynamically created daily entry fields
-            document.getElementById('dailyEntriesContainer').addEventListener('input', handleInput);
-            document.getElementById('dailyEntriesContainer').addEventListener('change', handleInput);
-
-            document.getElementById('exportPdfButton').addEventListener('click', exportAsPdf);
-            document.getElementById('shareTimesheetButton').addEventListener('click', shareTimesheet);
-            document.getElementById('toggleTimesheetButton').addEventListener('click', toggleTimesheet);
-
-
-            // Signature pads setup
-            setupSignaturePad('employeeSignatureCanvas', 'employee');
-            setupSignaturePad('supervisorSignatureCanvas', 'supervisor');
         });
     </script>
 </body>
