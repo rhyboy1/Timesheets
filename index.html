@@ -19,157 +19,787 @@
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
         }
-        .timesheet-table th, .timesheet-table td {
-            border: 1px solid #e5e7eb;
-            padding: 0.5rem;
-            text-align: center;
+        input, select, button, canvas {
+            border-radius: 0.75rem; /* rounded-xl */
         }
-        .timesheet-table thead th {
-            background-color: #1f2937;
-            color: #ffffff;
-            font-weight: 600;
-        }
-        .timesheet-table tbody tr:nth-child(odd) {
-            background-color: #f9fafb;
-        }
-        .timesheet-table input {
-            width: 100%;
-            text-align: center;
-            border: none;
-            background-color: transparent;
-            padding: 0.25rem;
-        }
-        .timesheet-table input:focus {
-            outline: 2px solid #3b82f6;
-            outline-offset: 2px;
-            background-color: #ffffff;
-        }
-        /* Custom styling for the total rows */
-        .timesheet-table tfoot td {
-            font-weight: 700;
-            background-color: #e5e7eb;
-        }
-        .timesheet-table tfoot .daily-total-label {
-            text-align: right;
-            padding-right: 1rem;
-        }
-        .loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5rem;
-            color: #1f2937;
-            z-index: 40;
+        .signature-canvas {
+            border: 2px dashed #d1d5db; /* border-gray-400 */
+            background-color: #f9fafb; /* bg-gray-50 */
+            touch-action: none;
         }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
+<body class="min-h-screen p-4 md:p-8 flex justify-center font-sans text-gray-800">
 
-    <!-- Message Box for Alerts -->
-    <div id="messageBox" class="hidden fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-transform transform translate-x-full">
-        <p id="messageText"></p>
-    </div>
-
-    <!-- Main Container -->
-    <div id="app" class="relative w-full max-w-7xl bg-white rounded-2xl shadow-xl p-6 md:p-8">
-        <div id="loadingOverlay" class="loading-overlay hidden">
-            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
-            <span class="ml-4">Loading...</span>
+    <!-- Main App Container -->
+    <div id="app-container" class="bg-white p-6 md:p-10 rounded-3xl shadow-2xl w-full max-w-4xl space-y-8">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-blue-800 tracking-tight">Protech Timesheet</h1>
+            <p class="text-sm text-gray-500 mt-2 md:mt-0">User ID: <span id="userIdDisplay" class="font-mono text-gray-700"></span></p>
         </div>
-        <header class="flex flex-col md:flex-row justify-between items-center mb-6 border-b pb-4">
-            <h1 class="text-3xl font-extrabold text-gray-800">Protech Timesheet</h1>
-            <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-4 md:mt-0">
-                <p id="userIdDisplay" class="text-sm font-semibold text-gray-600"></p>
-                <div id="userStatus" class="flex items-center space-x-2 text-sm text-gray-600">
-                    <span id="userStatusDot" class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
-                    <span id="userStatusText">Offline</span>
+
+        <!-- Non-blocking message box for feedback and errors -->
+        <div id="message-box" class="hidden bg-blue-100 text-blue-800 p-4 rounded-xl text-sm font-medium border border-blue-200"></div>
+        
+        <!-- Main Application Content -->
+        <div id="app-content">
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <button id="toggleTimesheetButton" class="px-6 py-3 bg-gray-200 text-gray-800 font-bold rounded-full shadow-md hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 transition-all transform hover:scale-105 hidden">
+                    Back to my Timesheet
+                </button>
+                <button id="shareTimesheetButton" class="px-6 py-3 bg-green-500 text-white font-bold rounded-full shadow-lg hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all transform hover:scale-105">
+                    Share This Timesheet
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-2xl shadow-inner">
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Company Name:</label>
+                    <input type="text" id="companyName" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" data-field="companyName" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Employee Name:</label>
+                    <input type="text" id="employeeName" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" data-field="employeeName" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Supervisor Name:</label>
+                    <input type="text" id="supervisorName" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" data-field="supervisorName" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Site Name:</label>
+                    <input type="text" id="siteName" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" data-field="siteName" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Employee Position:</label>
+                    <input type="text" id="employeePosition" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" data-field="employeePosition" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Supervisor Position:</label>
+                    <input type="text" id="supervisorPosition" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" data-field="supervisorPosition" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Week End Date:</label>
+                    <input type="date" id="weekEndDate" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" data-field="weekEndDate" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">Emp ID (from Payslip):</label>
+                    <input type="text" id="employeeId" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" data-field="employeeId" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-semibold text-gray-600 mb-1">State:</label>
+                    <input type="text" id="state" class="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all" data-field="state" />
                 </div>
             </div>
-        </header>
 
-        <!-- User Information Section -->
-        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div class="flex flex-col">
-                <label for="employeeName" class="text-sm font-semibold text-gray-600 mb-1">Employee Name</label>
-                <input type="text" id="employeeName" data-field="employeeName" class="p-2 border border-gray-300 rounded-md focus:border-blue-500" disabled>
-            </div>
-            <div class="flex flex-col">
-                <label for="companyName" class="text-sm font-semibold text-gray-600 mb-1">Company Name</label>
-                <input type="text" id="companyName" data-field="companyName" class="p-2 border border-gray-300 rounded-md focus:border-blue-500" disabled>
-            </div>
-            <div class="flex flex-col">
-                <label for="weekEnding" class="text-sm font-semibold text-gray-600 mb-1">Week Ending</label>
-                <input type="date" id="weekEnding" data-field="weekEnding" class="p-2 border border-gray-300 rounded-md focus:border-blue-500" disabled>
-            </div>
-            <div class="flex flex-col">
-                <label for="notes" class="text-sm font-semibold text-gray-600 mb-1">Notes</label>
-                <input type="text" id="notes" data-field="notes" class="p-2 border border-gray-300 rounded-md focus:border-blue-500" disabled>
-            </div>
-        </section>
+            <h2 class="text-2xl font-bold text-gray-700 mt-8 mb-4">Daily Entries</h2>
 
-        <!-- Timesheet Table -->
-        <div id="timesheetContainer" class="overflow-x-auto rounded-lg shadow-md mb-8">
-            <table class="w-full text-sm text-gray-600 timesheet-table">
-                <thead class="text-left text-white">
-                    <tr>
-                        <th class="rounded-tl-lg">Project Name</th>
-                        <th>Job Number</th>
-                        <th>Description</th>
-                        <th>Mon</th>
-                        <th>Tue</th>
-                        <th>Wed</th>
-                        <th>Thu</th>
-                        <th>Fri</th>
-                        <th>Sat</th>
-                        <th class="rounded-tr-lg">Sun</th>
-                    </tr>
-                </thead>
-                <tbody id="timesheetBody">
-                    <!-- Dynamic rows will be inserted here -->
-                </tbody>
-                <tfoot id="timesheetFoot">
-                    <tr>
-                        <td colspan="3" class="daily-total-label text-right">Daily Totals</td>
-                        <td id="total-mon">0.0</td>
-                        <td id="total-tue">0.0</td>
-                        <td id="total-wed">0.0</td>
-                        <td id="total-thu">0.0</td>
-                        <td id="total-fri">0.0</td>
-                        <td id="total-sat">0.0</td>
-                        <td id="total-sun">0.0</td>
-                    </tr>
-                    <tr>
-                        <td colspan="9" class="daily-total-label text-right">Grand Total</td>
-                        <td id="grand-total">0.0</td>
-                    </tr>
-                </tfoot>
-            </table>
+            <div id="dailyEntriesContainer" class="space-y-4">
+                <!-- MONDAY -->
+                <div class="bg-white p-4 rounded-xl shadow-md border-t-4 border-blue-500 transition-all hover:shadow-xl">
+                    <h3 class="text-xl font-bold text-gray-700 mb-2">Monday</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 daily-entry-container" data-index="0">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Date:</label>
+                            <input type="date" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="date" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Shift (D/A/N):</label>
+                            <select class="p-2 border border-gray-300 rounded-lg text-sm" data-field="shift">
+                                <option value="">Select</option>
+                                <option value="D">D</option>
+                                <option value="A">A</option>
+                                <option value="N">N</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
+                            <div class="flex space-x-1">
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
+                            <input type="text" class="p-2 border border-gray-300 bg-gray-100 rounded-lg text-sm daily-total-hours" data-field="total" readonly />
+                        </div>
+                        <div class="flex flex-col col-span-1 md:col-span-2 lg:col-span-1">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Extra Information:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="extraInfo" />
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="laha" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="lahaMeal" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA MEAL</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="travel" />
+                            <label class="text-xs font-semibold text-gray-500">TRAVEL AWAY</label>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Docket Number:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="docket" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Supervisor Daily Initials:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="supervisorInitials" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TUESDAY -->
+                <div class="bg-white p-4 rounded-xl shadow-md border-t-4 border-blue-500 transition-all hover:shadow-xl">
+                    <h3 class="text-xl font-bold text-gray-700 mb-2">Tuesday</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 daily-entry-container" data-index="1">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Date:</label>
+                            <input type="date" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="date" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Shift (D/A/N):</label>
+                            <select class="p-2 border border-gray-300 rounded-lg text-sm" data-field="shift">
+                                <option value="">Select</option>
+                                <option value="D">D</option>
+                                <option value="A">A</option>
+                                <option value="N">N</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
+                            <div class="flex space-x-1">
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
+                            <input type="text" class="p-2 border border-gray-300 bg-gray-100 rounded-lg text-sm daily-total-hours" data-field="total" readonly />
+                        </div>
+                        <div class="flex flex-col col-span-1 md:col-span-2 lg:col-span-1">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Extra Information:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="extraInfo" />
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="laha" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="lahaMeal" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA MEAL</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="travel" />
+                            <label class="text-xs font-semibold text-gray-500">TRAVEL AWAY</label>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Docket Number:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="docket" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Supervisor Daily Initials:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="supervisorInitials" />
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- WEDNESDAY -->
+                <div class="bg-white p-4 rounded-xl shadow-md border-t-4 border-blue-500 transition-all hover:shadow-xl">
+                    <h3 class="text-xl font-bold text-gray-700 mb-2">Wednesday</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 daily-entry-container" data-index="2">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Date:</label>
+                            <input type="date" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="date" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Shift (D/A/N):</label>
+                            <select class="p-2 border border-gray-300 rounded-lg text-sm" data-field="shift">
+                                <option value="">Select</option>
+                                <option value="D">D</option>
+                                <option value="A">A</option>
+                                <option value="N">N</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
+                            <div class="flex space-x-1">
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
+                            <input type="text" class="p-2 border border-gray-300 bg-gray-100 rounded-lg text-sm daily-total-hours" data-field="total" readonly />
+                        </div>
+                        <div class="flex flex-col col-span-1 md:col-span-2 lg:col-span-1">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Extra Information:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="extraInfo" />
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="laha" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="lahaMeal" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA MEAL</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="travel" />
+                            <label class="text-xs font-semibold text-gray-500">TRAVEL AWAY</label>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Docket Number:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="docket" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Supervisor Daily Initials:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="supervisorInitials" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- THURSDAY -->
+                <div class="bg-white p-4 rounded-xl shadow-md border-t-4 border-blue-500 transition-all hover:shadow-xl">
+                    <h3 class="text-xl font-bold text-gray-700 mb-2">Thursday</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 daily-entry-container" data-index="3">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Date:</label>
+                            <input type="date" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="date" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Shift (D/A/N):</label>
+                            <select class="p-2 border border-gray-300 rounded-lg text-sm" data-field="shift">
+                                <option value="">Select</option>
+                                <option value="D">D</option>
+                                <option value="A">A</option>
+                                <option value="N">N</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
+                            <div class="flex space-x-1">
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
+                            <input type="text" class="p-2 border border-gray-300 bg-gray-100 rounded-lg text-sm daily-total-hours" data-field="total" readonly />
+                        </div>
+                        <div class="flex flex-col col-span-1 md:col-span-2 lg:col-span-1">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Extra Information:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="extraInfo" />
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="laha" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="lahaMeal" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA MEAL</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="travel" />
+                            <label class="text-xs font-semibold text-gray-500">TRAVEL AWAY</label>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Docket Number:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="docket" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Supervisor Daily Initials:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="supervisorInitials" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FRIDAY -->
+                <div class="bg-white p-4 rounded-xl shadow-md border-t-4 border-blue-500 transition-all hover:shadow-xl">
+                    <h3 class="text-xl font-bold text-gray-700 mb-2">Friday</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 daily-entry-container" data-index="4">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Date:</label>
+                            <input type="date" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="date" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Shift (D/A/N):</label>
+                            <select class="p-2 border border-gray-300 rounded-lg text-sm" data-field="shift">
+                                <option value="">Select</option>
+                                <option value="D">D</option>
+                                <option value="A">A</option>
+                                <option value="N">N</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
+                            <div class="flex space-x-1">
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
+                            <input type="text" class="p-2 border border-gray-300 bg-gray-100 rounded-lg text-sm daily-total-hours" data-field="total" readonly />
+                        </div>
+                        <div class="flex flex-col col-span-1 md:col-span-2 lg:col-span-1">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Extra Information:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="extraInfo" />
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="laha" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="lahaMeal" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA MEAL</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="travel" />
+                            <label class="text-xs font-semibold text-gray-500">TRAVEL AWAY</label>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Docket Number:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="docket" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Supervisor Daily Initials:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="supervisorInitials" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SATURDAY -->
+                <div class="bg-white p-4 rounded-xl shadow-md border-t-4 border-blue-500 transition-all hover:shadow-xl">
+                    <h3 class="text-xl font-bold text-gray-700 mb-2">Saturday</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 daily-entry-container" data-index="5">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Date:</label>
+                            <input type="date" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="date" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Shift (D/A/N):</label>
+                            <select class="p-2 border border-gray-300 rounded-lg text-sm" data-field="shift">
+                                <option value="">Select</option>
+                                <option value="D">D</option>
+                                <option value="A">A</option>
+                                <option value="N">N</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
+                            <div class="flex space-x-1">
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
+                            <input type="text" class="p-2 border border-gray-300 bg-gray-100 rounded-lg text-sm daily-total-hours" data-field="total" readonly />
+                        </div>
+                        <div class="flex flex-col col-span-1 md:col-span-2 lg:col-span-1">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Extra Information:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="extraInfo" />
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="laha" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="lahaMeal" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA MEAL</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="travel" />
+                            <label class="text-xs font-semibold text-gray-500">TRAVEL AWAY</label>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Docket Number:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="docket" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Supervisor Daily Initials:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="supervisorInitials" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUNDAY -->
+                <div class="bg-white p-4 rounded-xl shadow-md border-t-4 border-blue-500 transition-all hover:shadow-xl">
+                    <h3 class="text-xl font-bold text-gray-700 mb-2">Sunday</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 daily-entry-container" data-index="6">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Date:</label>
+                            <input type="date" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="date" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Shift (D/A/N):</label>
+                            <select class="p-2 border border-gray-300 rounded-lg text-sm" data-field="shift">
+                                <option value="">Select</option>
+                                <option value="D">D</option>
+                                <option value="A">A</option>
+                                <option value="N">N</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="time-input p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
+                            <div class="flex space-x-1">
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="meal-break-input p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
+                            <input type="text" class="p-2 border border-gray-300 bg-gray-100 rounded-lg text-sm daily-total-hours" data-field="total" readonly />
+                        </div>
+                        <div class="flex flex-col col-span-1 md:col-span-2 lg:col-span-1">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Extra Information:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="extraInfo" />
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="laha" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="lahaMeal" />
+                            <label class="text-xs font-semibold text-gray-500">LAHA MEAL</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out rounded-sm" data-field="travel" />
+                            <label class="text-xs font-semibold text-gray-500">TRAVEL AWAY</label>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Docket Number:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="docket" />
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Supervisor Daily Initials:</label>
+                            <input type="text" class="p-2 border border-gray-300 rounded-lg text-sm" data-field="supervisorInitials" />
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="mt-8 pt-4 border-t-2 border-gray-200">
+                <div class="flex justify-end items-center space-x-4">
+                    <span class="text-xl font-bold text-gray-700">Total Hours:</span>
+                    <input type="text" id="grandTotal" class="w-24 p-2 text-xl font-bold text-center border-2 border-blue-500 rounded-lg bg-gray-100" readonly />
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-center space-x-4">
+                <button id="exportPdfButton" class="px-8 py-3 bg-red-600 text-white font-bold rounded-full shadow-lg hover:bg-red-700 transition-all transform hover:scale-105">
+                    Export to PDF
+                </button>
+            </div>
         </div>
-
-        <!-- Action Buttons -->
-        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
-            <button id="addRowButton" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full shadow-lg hover:bg-blue-700 transition-colors" disabled>Add Row</button>
-            <button id="exportPdfButton" class="bg-green-600 text-white font-bold py-2 px-6 rounded-full shadow-lg hover:bg-green-700 transition-colors" disabled>Export as PDF</button>
-            <button id="shareTimesheetButton" class="bg-yellow-600 text-white font-bold py-2 px-6 rounded-full shadow-lg hover:bg-yellow-700 transition-colors" disabled>Share</button>
-        </div>
-
+        
         <!-- Share Modal -->
-        <div id="shareModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4">
+        <div id="shareModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
                 <div class="flex justify-between items-center border-b pb-3 mb-4">
                     <h3 class="text-lg font-semibold text-gray-800">Share Your Timesheet</h3>
-                    <button id="closeShareModal" class="text-gray-400 hover:text-gray-600">&times;</button>
+                    <button id="closeShareModal" class="text-gray-400 hover:text-gray-600 font-bold text-2xl">&times;</button>
                 </div>
-                <p class="mb-4">Copy the URL below to share your timesheet with others.</p>
+                <p class="mb-4 text-gray-700">Copy the URL below to share your timesheet with others. Anyone with the link can view and edit the timesheet.</p>
                 <div class="flex items-center space-x-2">
-                    <input type="text" id="shareLinkInput" class="flex-grow p-2 border border-gray-300 rounded-md" readonly>
-                    <button id="copyShareLinkButton" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">Copy</button>
+                    <input type="text" id="shareLinkInput" class="flex-grow p-2 border border-gray-300 rounded-md bg-gray-50 font-mono text-sm" readonly>
+                    <button id="copyShareLinkButton" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">Copy</button>
                 </div>
             </div>
         </div>
@@ -184,243 +814,297 @@
         let auth;
         let userId;
         let appId;
-        let isAppReady = false;
-
-        // Data structure to hold timesheet data
         let timesheetData = {
-            employeeName: '',
             companyName: '',
-            weekEnding: '',
-            notes: '',
-            tasks: [
-                { projectName: '', jobNumber: '', description: '', mon: '', tue: '', wed: '', thu: '', fri: '', sat: '', sun: '' }
-            ]
+            employeeName: '',
+            supervisorName: '',
+            siteName: '',
+            employeePosition: '',
+            supervisorPosition: '',
+            weekEndDate: '',
+            employeeId: '',
+            state: '',
+            dailyEntries: new Array(7).fill(null).map(() => ({
+                date: '',
+                shift: '',
+                start_hour: '',
+                start_minute: '',
+                start_period: '',
+                end_hour: '',
+                end_minute: '',
+                end_period: '',
+                meal_hour: '00',
+                meal_minute: '00',
+                total: '0.0',
+                extraInfo: '',
+                laha: false,
+                lahaMeal: false,
+                travel: false,
+                docket: '',
+                supervisorInitials: ''
+            }))
         };
 
-        const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
         // --- Helper Functions ---
-        
-        // Function to show messages to the user
+
+        /**
+         * Shows a non-blocking message to the user.
+         * @param {string} text - The message to display.
+         * @param {string} className - Tailwind CSS classes for styling the message box.
+         */
         function showMessage(text, className) {
-            const messageBox = document.getElementById('messageBox');
-            const messageText = document.getElementById('messageText');
-            messageText.textContent = text;
-            messageBox.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-transform transform translate-x-0 ${className}`;
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = text;
+            messageBox.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all transform translate-x-0 ${className}`;
             setTimeout(() => {
-                messageBox.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-transform transform translate-x-full ${className}`;
+                messageBox.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all transform translate-x-full ${className}`;
             }, 3000);
+            messageBox.classList.remove('hidden');
+        }
+        
+        /**
+         * Converts a 12-hour time with AM/PM to 24-hour minutes.
+         * @param {string} hour - The hour (1-12).
+         * @param {string} minute - The minute (00-59).
+         * @param {string} period - 'AM' or 'PM'.
+         * @returns {number | null} The time in minutes from midnight, or null if invalid.
+         */
+        function timeToMinutes(hour, minute, period) {
+            if (!hour || !minute || !period) return null;
+            let h = parseInt(hour, 10);
+            const m = parseInt(minute, 10);
+            if (period === 'PM' && h !== 12) {
+                h += 12;
+            } else if (period === 'AM' && h === 12) {
+                h = 0;
+            }
+            return (h * 60) + m;
         }
 
-        // Function to toggle the loading overlay and UI state
-        function setAppReady(ready) {
-            isAppReady = ready;
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            loadingOverlay.classList.toggle('hidden', ready);
-            document.querySelectorAll('input, button').forEach(element => {
-                if (element.id !== 'closeShareModal' && element.id !== 'copyShareLinkButton') {
-                    element.disabled = !ready;
-                }
+        /**
+         * Calculates the total hours for a single day entry.
+         * @param {number} dayIndex - The index of the day in dailyEntries array.
+         */
+        function calculateDailyHours(dayIndex) {
+            const entry = timesheetData.dailyEntries[dayIndex];
+            const startMinutes = timeToMinutes(entry.start_hour, entry.start_minute, entry.start_period);
+            const endMinutes = timeToMinutes(entry.end_hour, entry.end_minute, entry.end_period);
+            const mealMinutes = (parseInt(entry.meal_hour, 10) || 0) * 60 + (parseInt(entry.meal_minute, 10) || 0);
+
+            if (startMinutes === null || endMinutes === null) {
+                entry.total = '0.0';
+                return;
+            }
+
+            let totalMinutes = endMinutes - startMinutes;
+            if (totalMinutes < 0) { // Handle overnight shift
+                totalMinutes += 24 * 60;
+            }
+            totalMinutes -= mealMinutes;
+
+            const totalHours = Math.max(0, totalMinutes / 60);
+            entry.total = totalHours.toFixed(2);
+        }
+
+        /**
+         * Calculates and updates the grand total hours for the entire timesheet.
+         */
+        function calculateGrandTotal() {
+            const grandTotal = timesheetData.dailyEntries.reduce((sum, entry) => {
+                return sum + (parseFloat(entry.total) || 0);
+            }, 0);
+            document.getElementById('grandTotal').value = grandTotal.toFixed(2);
+        }
+
+        // --- Data Handling ---
+
+        /**
+         * Renders all timesheet data from the data object to the DOM.
+         */
+        function renderTimesheet() {
+            // Render general info inputs
+            document.getElementById('companyName').value = timesheetData.companyName || '';
+            document.getElementById('employeeName').value = timesheetData.employeeName || '';
+            document.getElementById('supervisorName').value = timesheetData.supervisorName || '';
+            document.getElementById('siteName').value = timesheetData.siteName || '';
+            document.getElementById('employeePosition').value = timesheetData.employeePosition || '';
+            document.getElementById('supervisorPosition').value = timesheetData.supervisorPosition || '';
+            document.getElementById('weekEndDate').value = timesheetData.weekEndDate || '';
+            document.getElementById('employeeId').value = timesheetData.employeeId || '';
+            document.getElementById('state').value = timesheetData.state || '';
+
+            // Render daily entries
+            document.querySelectorAll('.daily-entry-container').forEach((container, index) => {
+                const entry = timesheetData.dailyEntries[index];
+                if (!entry) return;
+
+                container.querySelector('[data-field="date"]').value = entry.date || '';
+                container.querySelector('[data-field="shift"]').value = entry.shift || '';
+                container.querySelector('[data-field="start_hour"]').value = entry.start_hour || '';
+                container.querySelector('[data-field="start_minute"]').value = entry.start_minute || '';
+                container.querySelector('[data-field="start_period"]').value = entry.start_period || '';
+                container.querySelector('[data-field="end_hour"]').value = entry.end_hour || '';
+                container.querySelector('[data-field="end_minute"]').value = entry.end_minute || '';
+                container.querySelector('[data-field="end_period"]').value = entry.end_period || '';
+                container.querySelector('[data-field="meal_hour"]').value = entry.meal_hour || '00';
+                container.querySelector('[data-field="meal_minute"]').value = entry.meal_minute || '00';
+                container.querySelector('[data-field="total"]').value = entry.total || '0.0';
+                container.querySelector('[data-field="extraInfo"]').value = entry.extraInfo || '';
+                container.querySelector('[data-field="laha"]').checked = entry.laha || false;
+                container.querySelector('[data-field="lahaMeal"]').checked = entry.lahaMeal || false;
+                container.querySelector('[data-field="travel"]').checked = entry.travel || false;
+                container.querySelector('[data-field="docket"]').value = entry.docket || '';
+                container.querySelector('[data-field="supervisorInitials"]').value = entry.supervisorInitials || '';
             });
+
+            calculateGrandTotal();
         }
 
-        // --- PDF Generation ---
+        /**
+         * Updates the data object and saves to Firestore on any input change.
+         * @param {Event} event - The input change event.
+         */
+        function handleInput(event) {
+            const input = event.target;
+            const field = input.dataset.field;
+            const container = input.closest('.daily-entry-container');
+            const isCheckbox = input.type === 'checkbox';
+
+            if (container) {
+                // This is a daily entry input
+                const index = parseInt(container.dataset.index, 10);
+                const value = isCheckbox ? input.checked : input.value;
+                timesheetData.dailyEntries[index][field] = value;
+                
+                // Recalculate totals if a time or meal break field changes
+                if (['start_hour', 'start_minute', 'start_period', 'end_hour', 'end_minute', 'end_period', 'meal_hour', 'meal_minute'].includes(field)) {
+                    calculateDailyHours(index);
+                }
+            } else {
+                // This is a general info input
+                const value = isCheckbox ? input.checked : input.value;
+                timesheetData[field] = value;
+            }
+            calculateGrandTotal();
+            saveDataToFirestore();
+        }
+
+        /**
+         * Saves the current timesheet data to Firestore.
+         */
+        async function saveDataToFirestore() {
+            if (!userId || !appId) {
+                console.error("User or App ID is missing. Data cannot be saved.");
+                return;
+            }
+            try {
+                const timesheetDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'timesheets', userId);
+                await setDoc(timesheetDocRef, timesheetData, { merge: true });
+            } catch (error) {
+                console.error("Error saving data:", error);
+                showMessage(`Error saving data: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
+            }
+        }
+
+        // --- Event Listeners and Initialization ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('input, select').forEach(input => {
+                input.addEventListener('input', handleInput);
+                input.addEventListener('change', handleInput); // Also listen for change on selects/checkboxes
+            });
+
+            document.getElementById('shareTimesheetButton').addEventListener('click', () => {
+                const shareModal = document.getElementById('shareModal');
+                const shareLinkInput = document.getElementById('shareLinkInput');
+                const shareableUrl = `${window.location.origin}${window.location.pathname}?userId=${userId}`;
+                shareLinkInput.value = shareableUrl;
+                shareModal.classList.remove('hidden');
+            });
+
+            document.getElementById('closeShareModal').addEventListener('click', () => {
+                document.getElementById('shareModal').classList.add('hidden');
+            });
+
+            document.getElementById('copyShareLinkButton').addEventListener('click', () => {
+                const shareLinkInput = document.getElementById('shareLinkInput');
+                shareLinkInput.select();
+                document.execCommand('copy');
+                showMessage('Link copied to clipboard!', 'bg-green-100 text-green-800 border-green-200');
+            });
+
+            document.getElementById('toggleTimesheetButton').addEventListener('click', () => {
+                window.location.href = window.location.origin + window.location.pathname;
+            });
+        });
+
+        // PDF Generation function (adapted for the new layout)
         function exportAsPdf() {
             const doc = new window.jsPDF();
-            doc.text(`Protech Timesheet for ${timesheetData.employeeName}`, 14, 20);
-            doc.text(`Company: ${timesheetData.companyName}`, 14, 30);
-            doc.text(`Week Ending: ${timesheetData.weekEnding}`, 14, 40);
-            doc.text(`Notes: ${timesheetData.notes}`, 14, 50);
+            let y = 20;
+            const lineHeight = 10;
+            const margin = 14;
+            const fontName = 'helvetica'; // Use a standard font
+            doc.setFont(fontName);
 
-            const tableColumn = ["Project", "Job #", "Description", ...days.map(d => d.toUpperCase()), "Total"];
-            const tableRows = timesheetData.tasks.map(task => {
-                const totalHours = days.reduce((sum, day) => sum + (parseFloat(task[day]) || 0), 0);
+            doc.setFontSize(18);
+            doc.text(`Protech Timesheet`, margin, y);
+            y += lineHeight;
+
+            doc.setFontSize(12);
+            doc.text(`Company: ${timesheetData.companyName || ''}`, margin, y);
+            y += lineHeight;
+            doc.text(`Employee Name: ${timesheetData.employeeName || ''}`, margin, y);
+            y += lineHeight;
+            doc.text(`Supervisor Name: ${timesheetData.supervisorName || ''}`, margin, y);
+            y += lineHeight;
+            doc.text(`Week End Date: ${timesheetData.weekEndDate || ''}`, margin, y);
+            y += lineHeight * 2;
+
+            // Prepare table data for daily entries
+            const tableColumn = ["Day", "Date", "Shift", "Start", "End", "Break", "Total"];
+            const tableRows = timesheetData.dailyEntries.map((entry, index) => {
+                const startTime = entry.start_hour && entry.start_minute ? `${entry.start_hour}:${entry.start_minute} ${entry.start_period}` : '';
+                const endTime = entry.end_hour && entry.end_minute ? `${entry.end_hour}:${entry.end_minute} ${entry.end_period}` : '';
+                const mealBreak = entry.meal_hour && entry.meal_minute ? `${entry.meal_hour}h ${entry.meal_minute}m` : '';
                 return [
-                    task.projectName,
-                    task.jobNumber,
-                    task.description,
-                    ...days.map(d => task[d]),
-                    totalHours.toFixed(1)
+                    daysOfWeek[index],
+                    entry.date || '',
+                    entry.shift || '',
+                    startTime,
+                    endTime,
+                    mealBreak,
+                    entry.total || '0.0'
                 ];
             });
 
-            // Add totals to the end of the table
-            const dailyTotals = days.map(day => 
-                timesheetData.tasks.reduce((sum, task) => sum + (parseFloat(task[day]) || 0), 0)
-            );
-            const grandTotal = dailyTotals.reduce((sum, total) => sum + total, 0);
-
-            const totalRow = ["Daily Totals", "", "", ...dailyTotals.map(t => t.toFixed(1)), grandTotal.toFixed(1)];
-            tableRows.push(totalRow);
-
             doc.autoTable({
-                startY: 60,
+                startY: y,
                 head: [tableColumn],
                 body: tableRows,
                 styles: { fontSize: 8 },
                 headStyles: { fillColor: [31, 41, 55], textColor: [255, 255, 255] }
             });
 
-            doc.save('timesheet.pdf');
-        }
-
-        // --- Main App Logic ---
-
-        // Function to render all timesheet data to the DOM
-        function renderTimesheet() {
-            const timesheetBody = document.getElementById('timesheetBody');
-            timesheetBody.innerHTML = '';
-
-            // Render general inputs
-            document.getElementById('employeeName').value = timesheetData.employeeName || '';
-            document.getElementById('companyName').value = timesheetData.companyName || '';
-            document.getElementById('weekEnding').value = timesheetData.weekEnding || '';
-            document.getElementById('notes').value = timesheetData.notes || '';
-
-            // Render task rows
-            timesheetData.tasks.forEach((task, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><input type="text" data-row-index="${index}" data-field="projectName" value="${task.projectName || ''}"></td>
-                    <td><input type="text" data-row-index="${index}" data-field="jobNumber" value="${task.jobNumber || ''}"></td>
-                    <td><input type="text" data-row-index="${index}" data-field="description" value="${task.description || ''}"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="mon" value="${task.mon || ''}" step="0.1" min="0"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="tue" value="${task.tue || ''}" step="0.1" min="0"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="wed" value="${task.wed || ''}" step="0.1" min="0"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="thu" value="${task.thu || ''}" step="0.1" min="0"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="fri" value="${task.fri || ''}" step="0.1" min="0"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="sat" value="${task.sat || ''}" step="0.1" min="0"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="sun" value="${task.sun || ''}" step="0.1" min="0"></td>
-                `;
-                timesheetBody.appendChild(row);
-            });
-
-            // Re-attach event listeners to all newly rendered inputs
-            document.querySelectorAll('#timesheetContainer input, section input').forEach(input => {
-                // Ensure event listener is attached only once per element
-                input.removeEventListener('input', handleInput);
-                input.addEventListener('input', handleInput);
-            });
-
-            // Call the function to calculate and update totals
-            calculateTotals();
-        }
-
-        // Function to calculate and display all totals
-        function calculateTotals() {
-            const dailyTotals = days.map(() => 0);
-            let grandTotal = 0;
-
-            timesheetData.tasks.forEach(task => {
-                days.forEach((day, index) => {
-                    // Ensure the value is a number before adding it
-                    const hours = parseFloat(task[day]) || 0;
-                    dailyTotals[index] += hours;
-                    grandTotal += hours;
-                });
-            });
-
-            // Update the UI with the calculated totals
-            days.forEach((day, index) => {
-                document.getElementById(`total-${day}`).textContent = dailyTotals[index].toFixed(1);
-            });
-            document.getElementById('grand-total').textContent = grandTotal.toFixed(1);
-        }
-
-        // Unified event handler for all input changes
-        function handleInput(event) {
-            if (!isAppReady) return; // Prevent saving or updating if app is not ready
-
-            const input = event.target;
-            const rowIndex = input.dataset.rowIndex;
-            const field = input.dataset.field;
-            const day = input.dataset.day;
-
-            let value = input.value;
-            // Crucial fix: Treat empty number inputs as 0 for calculation, but save as empty string for display
-            if (input.type === 'number') {
-                value = input.value === '' ? '' : parseFloat(input.value) || 0;
-            }
-
-            if (rowIndex !== undefined && (field || day)) {
-                // This is a task row input
-                if (!timesheetData.tasks[rowIndex]) {
-                    timesheetData.tasks[rowIndex] = {};
-                }
-                if (day) {
-                    timesheetData.tasks[rowIndex][day] = value;
-                } else {
-                    timesheetData.tasks[rowIndex][field] = value;
-                }
-            } else if (field) {
-                // This is a general info input
-                timesheetData[field] = value;
-            }
-
-            // Immediately recalculate totals and save to Firestore
-            calculateTotals();
-            saveDataToFirestore();
-        }
-
-        // Function to save data to Firestore
-        async function saveDataToFirestore() {
-            if (!db || !userId || !appId || !isAppReady) return; // Don't save if not ready
+            // Add grand total at the end
+            y = doc.autoTable.previous.finalY + 10;
+            const grandTotal = timesheetData.dailyEntries.reduce((sum, entry) => sum + (parseFloat(entry.total) || 0), 0);
+            doc.setFontSize(12);
+            doc.text(`Grand Total Hours: ${grandTotal.toFixed(2)}`, doc.internal.pageSize.getWidth() - margin, y, { align: 'right' });
             
-            try {
-                const timesheetDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'timesheets', userId);
-                // Use a shallow copy to prevent potential mutation issues
-                const dataToSave = JSON.parse(JSON.stringify(timesheetData));
-                await setDoc(timesheetDocRef, dataToSave, { merge: true });
-            } catch (error) {
-                console.error("Error saving data:", error);
-                showMessage(`Error saving data: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
-            }
+            doc.save('protech_timesheet.pdf');
         }
-        
-        // --- Event Handlers for UI ---
-        document.getElementById('addRowButton').addEventListener('click', () => {
-            if (!isAppReady) return;
-            timesheetData.tasks.push({
-                projectName: '', jobNumber: '', description: '', mon: '', tue: '', wed: '', thu: '', fri: '', sat: '', sun: ''
-            });
-            renderTimesheet();
-            saveDataToFirestore();
-        });
-
         document.getElementById('exportPdfButton').addEventListener('click', exportAsPdf);
-        
-        document.getElementById('shareTimesheetButton').addEventListener('click', () => {
-            if (!isAppReady) return;
-            const shareModal = document.getElementById('shareModal');
-            const shareLinkInput = document.getElementById('shareLinkInput');
-            // Assuming the shareable URL is based on the userId
-            const shareableUrl = `${window.location.origin}${window.location.pathname}?userId=${userId}`;
-            shareLinkInput.value = shareableUrl;
-            shareModal.classList.remove('hidden');
-        });
 
-        document.getElementById('closeShareModal').addEventListener('click', () => {
-            document.getElementById('shareModal').classList.add('hidden');
-        });
-
-        document.getElementById('copyShareLinkButton').addEventListener('click', () => {
-            const shareLinkInput = document.getElementById('shareLinkInput');
-            shareLinkInput.select();
-            document.execCommand('copy'); // Fallback method for copying
-            showMessage('Link copied to clipboard!', 'bg-green-100 text-green-800 border-green-200');
-        });
-
-        // --- Firestore & Auth Initialization ---
+        // --- Firebase & Auth Initialization ---
         const initializeAppAndAuth = async () => {
-            setAppReady(false); // Start with a loading state
             try {
-                // Get config and token from environment variables
                 const envConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
                 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
-                // Provide a default for appId if the environment variable is not defined
                 appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
                 
-                // Fallback to a hardcoded config if environment config is not available
                 const firebaseConfig = envConfig && envConfig.projectId ? envConfig : {
                     apiKey: "AIzaSyCe_ZHNcao3XUWBPBv8eQgoLpJRkp63Vwg",
                     authDomain: "protechtimesheet.firebaseapp.com",
@@ -430,16 +1114,14 @@
                     appId: "1:275584089101:web:1b8378dc32cb92ebb5e944"
                 };
                 
-                // Ensure the project ID is available before proceeding.
                 if (!firebaseConfig || !firebaseConfig.projectId) {
-                    throw new Error("Firebase configuration is missing or invalid. The app cannot be initialized.");
+                    throw new Error("Firebase configuration is missing or invalid.");
                 }
 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
-                // Sign in with custom token or anonymously
                 const signInWithToken = async () => {
                     try {
                         if (initialAuthToken) {
@@ -456,58 +1138,45 @@
 
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
-                        userId = user.uid;
-                        document.getElementById('userIdDisplay').textContent = `User ID: ${userId}`;
-                        document.getElementById('userStatusDot').classList.remove('bg-red-500');
-                        document.getElementById('userStatusDot').classList.add('bg-green-500');
-                        document.getElementById('userStatusText').textContent = 'Online';
-
                         const urlParams = new URLSearchParams(window.location.search);
                         const sharedUserId = urlParams.get('userId');
                         
-                        // Determine the correct user ID for data fetching
-                        const targetUserId = sharedUserId || userId;
-                        
-                        // Check if appId is valid before creating the document reference
+                        userId = sharedUserId || user.uid;
+
+                        if (sharedUserId) {
+                             document.getElementById('toggleTimesheetButton').classList.remove('hidden');
+                        }
+
+                        document.getElementById('userIdDisplay').textContent = userId;
+
                         if (!appId) {
                             console.error("App ID is missing, cannot create timesheet document reference.");
                             showMessage("Error: App ID is missing. Cannot load timesheet.", 'bg-red-100 text-red-800 border-red-200');
                             return;
                         }
-                        const timesheetDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'timesheets', targetUserId);
+                        
+                        const timesheetDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'timesheets', userId);
 
-                        // Set up real-time listener for the timesheet data
                         onSnapshot(timesheetDocRef, (docSnap) => {
                             if (docSnap.exists()) {
                                 timesheetData = docSnap.data();
                             } else {
-                                // If no data exists, save the default structure
                                 saveDataToFirestore();
                             }
-                            renderTimesheet(); // Always render on data change
-                            setAppReady(true); // App is now ready
+                            renderTimesheet();
                         }, (error) => {
                             console.error("Error fetching timesheet data:", error);
                             showMessage(`Error fetching data: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
-                            setAppReady(true); // Still make the app ready, but with an error message
                         });
-                    } else {
-                        // User is signed out, but we should handle this gracefully
-                        document.getElementById('userStatusDot').classList.remove('bg-green-500');
-                        document.getElementById('userStatusDot').classList.add('bg-red-500');
-                        document.getElementById('userStatusText').textContent = 'Offline';
-                        setAppReady(true); // No user, but app is ready to accept a sign-in
                     }
                 });
 
             } catch (error) {
                 console.error("Failed to initialize the app:", error);
                 showMessage(`Failed to initialize. Error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
-                setAppReady(true); // App failed to initialize, but we should still stop the loading screen
             }
         };
         
-        // Initial app startup
         initializeAppAndAuth();
     </script>
 </body>
