@@ -644,48 +644,45 @@
 
         const initializeAppAndAuth = async () => {
             try {
-                // Ensure the Firebase config is available before proceeding
-                if (!firebaseConfig || !firebaseConfig.projectId) {
-                    throw new Error("Firebase configuration is missing or invalid.");
-                }
-
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                // Use onAuthStateChanged for a more reliable auth flow
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log('Firebase user authenticated with ID:', userId);
 
-                userId = auth.currentUser.uid;
-                console.log('Firebase user authenticated with ID:', userId);
+                        timesheetId = parseUrlForTimesheetId();
+                        setupTimesheetListener();
 
-                timesheetId = parseUrlForTimesheetId();
-                setupTimesheetListener();
+                        // Hide loading and show app
+                        loadingScreen.style.display = 'none';
+                        appContainer.style.display = 'block';
 
-                // Hide loading and show app
-                loadingScreen.style.display = 'none';
-                appContainer.style.display = 'block';
+                        // Signature pads setup
+                        setupSignaturePad('employeeSignatureCanvas', 'employee');
+                        setupSignaturePad('supervisorSignatureCanvas', 'supervisor');
 
-                // Signature pads setup
-                setupSignaturePad('employeeSignatureCanvas', 'employee');
-                setupSignaturePad('supervisorSignatureCanvas', 'supervisor');
+                        // Event listeners for top-level fields
+                        document.querySelectorAll('input:not([data-index]), select:not([data-index])').forEach(element => {
+                            element.addEventListener('input', handleInput);
+                            element.addEventListener('change', handleInput);
+                        });
 
-                // Event listeners for top-level fields
-                document.querySelectorAll('input:not([data-index]), select:not([data-index])').forEach(element => {
-                    element.addEventListener('input', handleInput);
-                    element.addEventListener('change', handleInput);
+                        // Event delegation for dynamically created daily entry fields
+                        document.getElementById('dailyEntriesContainer').addEventListener('input', handleInput);
+                        document.getElementById('dailyEntriesContainer').addEventListener('change', handleInput);
+
+                        document.getElementById('exportPdfButton').addEventListener('click', exportAsPdf);
+                        document.getElementById('shareTimesheetButton').addEventListener('click', shareTimesheet);
+                        document.getElementById('toggleTimesheetButton').addEventListener('click', toggleTimesheet);
+                    } else {
+                        // Sign in anonymously if no user is found
+                        await signInWithCustomToken(auth, initialAuthToken).catch(() => signInAnonymously(auth));
+                    }
                 });
-
-                // Event delegation for dynamically created daily entry fields
-                document.getElementById('dailyEntriesContainer').addEventListener('input', handleInput);
-                document.getElementById('dailyEntriesContainer').addEventListener('change', handleInput);
-
-                document.getElementById('exportPdfButton').addEventListener('click', exportAsPdf);
-                document.getElementById('shareTimesheetButton').addEventListener('click', shareTimesheet);
-                document.getElementById('toggleTimesheetButton').addEventListener('click', toggleTimesheet);
 
             } catch (error) {
                 console.error("Failed to initialize the app:", error);
@@ -694,7 +691,7 @@
             }
         };
 
-        document.addEventListener('DOMContentLoaded', initializeAppAndAuth);
+        initializeAppAndAuth();
     </script>
 </body>
 </html>
