@@ -718,7 +718,10 @@
                 } else {
                     entry[field] = target.value;
                 }
-                calculateTotals();
+                // --- FIX: Recalculate totals specifically when time fields change ---
+                if (field === 'start' || field === 'end' || field === 'meal') {
+                    calculateTotals();
+                }
             } else {
                 timesheetData[target.id] = target.value;
             }
