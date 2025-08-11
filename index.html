@@ -34,70 +34,36 @@
         .animate-spin-custom {
             animation: spin 1s linear infinite;
         }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border-radius: 1rem;
-            width: 80%;
-            max-width: 500px;
-            text-align: center;
-        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 flex justify-center font-sans text-gray-800">
 
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50">
-        <div class="p-8 text-center text-gray-500 rounded-lg bg-white shadow-lg">
-            <p class="text-xl font-semibold mb-2">Initializing Application...</p>
-            <div class="w-10 h-10 border-4 border-t-4 border-blue-500 border-t-transparent rounded-full animate-spin-custom mx-auto"></div>
-        </div>
-    </div>
-    
-    <!-- Error Modal -->
-    <div id="error-modal" class="modal">
-        <div class="modal-content bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
-            <h3 class="text-xl font-bold mb-2">Application Error</h3>
-            <p id="error-message">Failed to initialize the application. Please check the console for more details.</p>
-        </div>
-    </div>
-
     <!-- Main App Container -->
-    <div id="app-container" class="hidden bg-white p-6 md:p-10 rounded-3xl shadow-2xl w-full max-w-4xl space-y-8">
+    <div id="app-container" class="bg-white p-6 md:p-10 rounded-3xl shadow-2xl w-full max-w-4xl space-y-8">
         <div class="flex flex-col md:flex-row justify-between items-center mb-6">
             <h1 class="text-3xl md:text-4xl font-extrabold text-blue-800 tracking-tight">Protech Timesheet</h1>
             <p class="text-sm text-gray-500 mt-2 md:mt-0">User ID: <span id="userIdDisplay" class="font-mono text-gray-700"></span></p>
         </div>
 
+        <!-- Non-blocking message box for feedback and errors -->
         <div id="message-box" class="hidden bg-blue-100 text-blue-800 p-4 rounded-xl text-sm font-medium border border-blue-200"></div>
 
-        <!-- Manual API Key Input Section -->
+        <!-- Manual API Key Input Section (always visible initially) -->
         <div id="config-section" class="bg-yellow-50 p-6 rounded-2xl border-2 border-yellow-200 shadow-inner">
             <h2 class="text-xl font-bold text-yellow-800 mb-2">Configuration Required</h2>
             <p class="text-sm text-yellow-700 mb-4">
-                Your app failed to connect. Please paste your Firebase Project ID and API Key below.
+                Please paste your Firebase Project ID and API Key below to get started.
             </p>
             <div class="space-y-3">
                 <input type="text" id="manualProjectId" placeholder="Enter your Project ID (e.g., 'protechtimesheet')" class="w-full p-3 border border-yellow-300 rounded-xl focus:ring-2 focus:ring-yellow-500 transition-all" />
                 <input type="text" id="manualApiKey" placeholder="Enter your API Key (e.g., 'AIza...')" class="w-full p-3 border border-yellow-300 rounded-xl focus:ring-2 focus:ring-yellow-500 transition-all" />
                 <button id="saveConfigButton" class="w-full px-6 py-3 bg-yellow-500 text-white font-bold rounded-full shadow-lg hover:bg-yellow-600 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition-all transform hover:scale-105">
-                    Save and Reload
+                    Save and Start
                 </button>
             </div>
         </div>
         
+        <!-- Main Application Content (hidden until configured) -->
         <div id="app-content" class="hidden">
             <div class="flex flex-col md:flex-row gap-4 mb-6">
                 <button id="toggleTimesheetButton" class="px-6 py-3 bg-gray-200 text-gray-800 font-bold rounded-full shadow-md hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-400 transition-all transform hover:scale-105">
@@ -208,12 +174,10 @@
 
         let db, auth, userId, timesheetId = null;
         let unsubscribe = null;
-        const loadingScreen = document.getElementById('loading-screen');
         const appContainer = document.getElementById('app-container');
         const appContent = document.getElementById('app-content');
         const configSection = document.getElementById('config-section');
         const messageBox = document.getElementById('message-box');
-        const errorModal = document.getElementById('error-modal');
         const shareTimesheetButton = document.getElementById('shareTimesheetButton');
         const toggleTimesheetButton = document.getElementById('toggleTimesheetButton');
         const saveConfigButton = document.getElementById('saveConfigButton');
@@ -240,10 +204,15 @@
             return new Blob(byteArrays, { type: contentType });
         };
         
-        const showModal = (message) => {
-            document.getElementById('error-message').textContent = message;
-            errorModal.style.display = 'block';
+        const showMessage = (msg, classes) => {
+            messageBox.textContent = msg;
+            messageBox.className = `p-4 rounded-xl text-sm font-medium border ${classes}`;
+            messageBox.style.display = 'block';
         };
+        
+        const hideMessage = () => {
+             messageBox.style.display = 'none';
+        }
 
         const updateUI = () => {
             if (!timesheetData) return;
@@ -341,7 +310,10 @@
         };
 
         const saveTimesheet = async (data) => {
-            if (!db || !userId) return;
+            if (!db || !userId) {
+                showMessage('App not initialized. Please provide config.', 'bg-red-100 text-red-800 border-red-200');
+                return;
+            }
             const docRef = getTimesheetDocRef();
             try {
                 await setDoc(docRef, data, { merge: true });
@@ -351,16 +323,6 @@
                 showMessage('Failed to save timesheet.', 'bg-red-100 text-red-800 border-red-200');
             }
         };
-
-        const showMessage = (msg, classes) => {
-            messageBox.textContent = msg;
-            messageBox.className = `p-4 rounded-xl text-sm font-medium border ${classes}`;
-            messageBox.style.display = 'block';
-        };
-        
-        const hideMessage = () => {
-             messageBox.style.display = 'none';
-        }
 
         const calculateTotals = () => {
             let totalMinutesAll = 0;
@@ -667,14 +629,19 @@
         };
 
         const initializeAppAndAuth = async (config) => {
-            loadingScreen.style.display = 'flex';
-            appContainer.style.display = 'none';
+            // First, we check if a valid config exists. If not, we don't try to initialize.
+            if (!config || !config.apiKey || !config.projectId) {
+                console.log("No valid Firebase config provided. Showing configuration form.");
+                configSection.style.display = 'block';
+                appContent.style.display = 'none';
+                return;
+            }
+            
+            // If a config exists, hide the config form and proceed with initialization.
+            configSection.style.display = 'none';
+            appContent.style.display = 'block';
 
             try {
-                if (!config || !config.apiKey || !config.projectId) {
-                    throw new Error("Missing Firebase configuration.");
-                }
-
                 const app = initializeApp(config);
                 auth = getAuth(app);
                 db = getFirestore(app);
@@ -686,11 +653,6 @@
 
                         timesheetId = parseUrlForTimesheetId();
                         setupTimesheetListener();
-
-                        loadingScreen.style.display = 'none';
-                        appContainer.style.display = 'block';
-                        configSection.style.display = 'none';
-                        appContent.style.display = 'block';
 
                         setupSignaturePad('employeeSignatureCanvas', 'employee');
                         setupSignaturePad('supervisorSignatureCanvas', 'supervisor');
@@ -713,12 +675,9 @@
 
             } catch (error) {
                 console.error("Failed to initialize the app:", error);
-                loadingScreen.style.display = 'none';
-                appContainer.style.display = 'block';
                 configSection.style.display = 'block';
                 appContent.style.display = 'none';
-                showMessage(`Failed to initialize with provided key. Please check your config. Error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
-                showModal(`Failed to initialize the app. Details: ${error.message}`);
+                showMessage(`Failed to initialize. Check your config. Error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
             }
         };
         
@@ -734,7 +693,6 @@
                 appId: "" // Not critical for this app
             };
             
-            // This is the most crucial part. We are now relying on manual input.
             initializeAppAndAuth(newConfig);
         });
         
