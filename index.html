@@ -34,6 +34,26 @@
         .animate-spin-custom {
             animation: spin 1s linear infinite;
         }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 1rem;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 flex justify-center font-sans text-gray-800">
@@ -41,8 +61,16 @@
     <!-- Loading Screen -->
     <div id="loading-screen" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50">
         <div class="p-8 text-center text-gray-500 rounded-lg bg-white shadow-lg">
-            <p class="text-xl font-semibold mb-2">Loading Timesheet...</p>
+            <p class="text-xl font-semibold mb-2">Initializing Application...</p>
             <div class="w-10 h-10 border-4 border-t-4 border-blue-500 border-t-transparent rounded-full animate-spin-custom mx-auto"></div>
+        </div>
+    </div>
+    
+    <!-- Error Modal -->
+    <div id="error-modal" class="modal">
+        <div class="modal-content bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+            <h3 class="text-xl font-bold mb-2">Application Error</h3>
+            <p id="error-message">Failed to initialize the application. Please check the console for more details.</p>
         </div>
     </div>
 
@@ -138,7 +166,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables provided by the Canvas environment
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
@@ -166,6 +194,7 @@
         const loadingScreen = document.getElementById('loading-screen');
         const appContainer = document.getElementById('app-container');
         const messageBox = document.getElementById('message-box');
+        const errorModal = document.getElementById('error-modal');
         const shareTimesheetButton = document.getElementById('shareTimesheetButton');
         const toggleTimesheetButton = document.getElementById('toggleTimesheetButton');
 
@@ -182,6 +211,11 @@
                 byteArrays.push(byteArray);
             }
             return new Blob(byteArrays, { type: contentType });
+        };
+        
+        const showModal = (message) => {
+            document.getElementById('error-message').textContent = message;
+            errorModal.style.display = 'block';
         };
 
         const updateUI = () => {
@@ -608,71 +642,59 @@
             setupTimesheetListener();
         };
 
-        // Initialize Firebase and set up event listeners on DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', async () => {
-            const showFatalError = (msg) => {
-                loadingScreen.style.display = 'none';
-                appContainer.style.display = 'block';
-                showMessage(msg, 'bg-red-100 text-red-800 border-red-200');
-            };
-
-            // Initialize Firebase with the provided configuration
+        const initializeAppAndAuth = async () => {
             try {
+                // Ensure the Firebase config is available before proceeding
+                if (!firebaseConfig || !firebaseConfig.projectId) {
+                    throw new Error("Firebase configuration is missing or invalid.");
+                }
+
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // Set up the authentication state observer first
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                    } else {
-                        // If for some reason the user is not authenticated, we sign in anonymously.
-                        // This should handle the edge case where the initial token fails.
-                        await signInAnonymously(auth);
-                        userId = auth.currentUser.uid;
-                    }
-                    console.log('Firebase user authenticated with ID:', userId);
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
 
-                    // Once authenticated, determine timesheet ID and set up the listener
-                    timesheetId = parseUrlForTimesheetId();
-                    setupTimesheetListener();
+                userId = auth.currentUser.uid;
+                console.log('Firebase user authenticated with ID:', userId);
 
-                    // Hide loading and show app
-                    loadingScreen.style.display = 'none';
-                    appContainer.style.display = 'block';
+                timesheetId = parseUrlForTimesheetId();
+                setupTimesheetListener();
 
-                    // Signature pads setup
-                    setupSignaturePad('employeeSignatureCanvas', 'employee');
-                    setupSignaturePad('supervisorSignatureCanvas', 'supervisor');
+                // Hide loading and show app
+                loadingScreen.style.display = 'none';
+                appContainer.style.display = 'block';
 
-                    // Event listeners for top-level fields
-                    document.querySelectorAll('input:not([data-index]), select:not([data-index])').forEach(element => {
-                        element.addEventListener('input', handleInput);
-                        element.addEventListener('change', handleInput);
-                    });
+                // Signature pads setup
+                setupSignaturePad('employeeSignatureCanvas', 'employee');
+                setupSignaturePad('supervisorSignatureCanvas', 'supervisor');
 
-                    // Event delegation for dynamically created daily entry fields
-                    document.getElementById('dailyEntriesContainer').addEventListener('input', handleInput);
-                    document.getElementById('dailyEntriesContainer').addEventListener('change', handleInput);
-
-                    document.getElementById('exportPdfButton').addEventListener('click', exportAsPdf);
-                    document.getElementById('shareTimesheetButton').addEventListener('click', shareTimesheet);
-                    document.getElementById('toggleTimesheetButton').addEventListener('click', toggleTimesheet);
+                // Event listeners for top-level fields
+                document.querySelectorAll('input:not([data-index]), select:not([data-index])').forEach(element => {
+                    element.addEventListener('input', handleInput);
+                    element.addEventListener('change', handleInput);
                 });
 
-                // Now attempt to sign in with the custom token.
-                // onAuthStateChanged will handle the rest.
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken).catch(error => {
-                        console.error('Custom token sign-in failed:', error);
-                    });
-                }
+                // Event delegation for dynamically created daily entry fields
+                document.getElementById('dailyEntriesContainer').addEventListener('input', handleInput);
+                document.getElementById('dailyEntriesContainer').addEventListener('change', handleInput);
+
+                document.getElementById('exportPdfButton').addEventListener('click', exportAsPdf);
+                document.getElementById('shareTimesheetButton').addEventListener('click', shareTimesheet);
+                document.getElementById('toggleTimesheetButton').addEventListener('click', toggleTimesheet);
+
             } catch (error) {
-                console.error("Error initializing Firebase:", error);
-                showFatalError('Failed to initialize the app. Please check the console for details.');
+                console.error("Failed to initialize the app:", error);
+                loadingScreen.style.display = 'none';
+                showModal(`Failed to initialize the app. Details: ${error.message}`);
             }
-        });
+        };
+
+        document.addEventListener('DOMContentLoaded', initializeAppAndAuth);
     </script>
 </body>
 </html>
