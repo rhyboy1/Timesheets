@@ -37,6 +37,12 @@
             width: 100%;
             text-align: center;
         }
+        .signature-pad {
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            touch-action: none; /* Prevents scrolling on touch */
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
@@ -78,6 +84,18 @@
                     <label for="supervisorPosition" class="block text-sm font-medium text-gray-700">Supervisor Position</label>
                     <input type="text" id="supervisorPosition" onchange="handleHeaderInputChange('supervisorPosition', this.value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-800">
                 </div>
+                <div class="bg-gray-50 rounded-xl p-4 shadow-sm border border-gray-200">
+                    <label for="weekEndDate" class="block text-sm font-medium text-gray-700">Week Ending Date</label>
+                    <input type="date" id="weekEndDate" onchange="handleHeaderInputChange('weekEndDate', this.value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-800">
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 shadow-sm border border-gray-200">
+                    <label for="employeeId" class="block text-sm font-medium text-gray-700">Employee ID</label>
+                    <input type="text" id="employeeId" onchange="handleHeaderInputChange('employeeId', this.value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-800">
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 shadow-sm border border-gray-200">
+                    <label for="state" class="block text-sm font-medium text-gray-700">State</label>
+                    <input type="text" id="state" onchange="handleHeaderInputChange('state', this.value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-gray-800">
+                </div>
             </div>
 
             <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner border border-gray-200">
@@ -109,6 +127,21 @@
                 </table>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                <div class="bg-gray-50 rounded-xl p-6 shadow-sm border border-gray-200">
+                    <label class="block text-sm font-medium text-gray-700">Employee Signature</label>
+                    <canvas id="employeeSignatureCanvas" class="signature-pad w-full h-32"></canvas>
+                    <p class="mt-1 text-xs text-gray-500">Draw your signature above. Click "Clear" to reset.</p>
+                    <button onclick="clearSignature('employee')" class="mt-2 px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-full hover:bg-gray-300">Clear</button>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-6 shadow-sm border border-gray-200">
+                    <label class="block text-sm font-medium text-gray-700">Supervisor Signature</label>
+                    <canvas id="supervisorSignatureCanvas" class="signature-pad w-full h-32"></canvas>
+                    <p class="mt-1 text-xs text-gray-500">Supervisor's signature. Click "Clear" to reset.</p>
+                    <button onclick="clearSignature('supervisor')" class="mt-2 px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-full hover:bg-gray-300">Clear</button>
+                </div>
+            </div>
+
             <div class="flex justify-end space-x-4">
                 <button onclick="saveDataToFirestore()" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 transition duration-300 transform hover:scale-105">
                     Save Timesheet
@@ -126,7 +159,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase-provided global variables
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -142,6 +175,11 @@
             siteName: "",
             employeePosition: "",
             supervisorPosition: "",
+            weekEndDate: "",
+            employeeId: "",
+            state: "",
+            employeeSignature: "",
+            supervisorSignature: "",
             days: [
                 { day: "Monday", date: "", shift: "D", start: "", end: "", break: "00:30", hours: "00:00", extraInfo: "", laha: false, lahaMeal: false, travelAway: false, docketNumber: "", supInitials: "" },
                 { day: "Tuesday", date: "", shift: "D", start: "", end: "", break: "00:30", hours: "00:00", extraInfo: "", laha: false, lahaMeal: false, travelAway: false, docketNumber: "", supInitials: "" },
@@ -152,6 +190,10 @@
                 { day: "Sunday", date: "", shift: "D", start: "", end: "", break: "00:30", hours: "00:00", extraInfo: "", laha: false, lahaMeal: false, travelAway: false, docketNumber: "", supInitials: "" }
             ]
         };
+
+        // Signature Pad Variables
+        let isDrawing = false;
+        let lastPoint = null;
 
         // UI Utility functions
         function showMessage(message, classes = 'bg-blue-100 text-blue-800 border-blue-200') {
@@ -179,6 +221,9 @@
             const siteName = timesheetData.siteName || 'N/A';
             const employeePosition = timesheetData.employeePosition || 'N/A';
             const supervisorPosition = timesheetData.supervisorPosition || 'N/A';
+            const weekEndDate = timesheetData.weekEndDate || 'N/A';
+            const employeeId = timesheetData.employeeId || 'N/A';
+            const state = timesheetData.state || 'N/A';
             const totalHours = calculateTotalHours();
 
             doc.setFontSize(18);
@@ -191,9 +236,12 @@
             doc.text(`Site Name: ${siteName}`, 14, 53);
             doc.text(`Employee Position: ${employeePosition}`, 14, 60);
             doc.text(`Supervisor Position: ${supervisorPosition}`, 14, 67);
-            doc.text(`Total Hours: ${totalHours}`, 14, 74);
+            doc.text(`Week Ending Date: ${weekEndDate}`, 14, 74);
+            doc.text(`Employee ID: ${employeeId}`, 14, 81);
+            doc.text(`State: ${state}`, 14, 88);
+            doc.text(`Total Hours: ${totalHours}`, 14, 95);
 
-            const tableColumn = ["Day", "Date", "Shift", "Start", "End", "Break", "Hours", "Extra Information", "LAHA", "LAHA MEAL", "TRAVEL AWAY", "Docket Number", "Sup. Initials"];
+            const tableColumn = ["Day", "Date", "Shift", "Start", "End", "Break", "Hours", "Extra Info", "LAHA", "LAHA MEAL", "TRAVEL AWAY", "Docket No.", "Sup. Initials"];
             const tableRows = timesheetData.days.map(dayData => [
                 dayData.day,
                 dayData.date,
@@ -213,7 +261,7 @@
             doc.autoTable({
                 head: [tableColumn],
                 body: tableRows,
-                startY: 80,
+                startY: 105,
                 theme: 'striped',
                 headStyles: {
                     fillColor: [243, 244, 246],
@@ -225,6 +273,22 @@
                 }
             });
 
+            const finalY = doc.autoTable.previous.finalY + 10;
+            doc.setFontSize(12);
+
+            if (timesheetData.employeeSignature) {
+                doc.text(`Employee Signature:`, 14, finalY);
+                doc.addImage(timesheetData.employeeSignature, 'PNG', 14, finalY + 5, 80, 40);
+            } else {
+                doc.text(`Employee Signature: Not provided`, 14, finalY);
+            }
+            if (timesheetData.supervisorSignature) {
+                doc.text(`Supervisor Signature:`, 14, finalY + 50);
+                doc.addImage(timesheetData.supervisorSignature, 'PNG', 14, finalY + 55, 80, 40);
+            } else {
+                doc.text(`Supervisor Signature: Not provided`, 14, finalY + 50);
+            }
+            
             doc.save("timesheet.pdf");
             showMessage("PDF generated successfully!", 'bg-green-100 text-green-800 border-green-200');
         };
@@ -264,7 +328,7 @@
             return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
         }
 
-        function handleHeaderInputChange(field, value) {
+        window.handleHeaderInputChange = function(field, value) {
             timesheetData[field] = value;
             saveDataToFirestore();
         }
@@ -299,6 +363,20 @@
             document.getElementById('siteName').value = timesheetData.siteName || '';
             document.getElementById('employeePosition').value = timesheetData.employeePosition || '';
             document.getElementById('supervisorPosition').value = timesheetData.supervisorPosition || '';
+            document.getElementById('weekEndDate').value = timesheetData.weekEndDate || '';
+            document.getElementById('employeeId').value = timesheetData.employeeId || '';
+            document.getElementById('state').value = timesheetData.state || '';
+            
+            // Reset signature pads and draw if data exists
+            setupSignaturePad('employee');
+            setupSignaturePad('supervisor');
+            if (timesheetData.employeeSignature) {
+                drawSignatureFromData('employee', timesheetData.employeeSignature);
+            }
+            if (timesheetData.supervisorSignature) {
+                drawSignatureFromData('supervisor', timesheetData.supervisorSignature);
+            }
+            
             document.getElementById('totalHoursDisplay').textContent = calculateTotalHours();
 
             timesheetData.days.forEach((dayData, index) => {
@@ -349,6 +427,102 @@
                 tableBody.appendChild(row);
             });
         }
+        
+        function setupSignaturePad(userType) {
+            const canvasId = userType === 'employee' ? 'employeeSignatureCanvas' : 'supervisorSignatureCanvas';
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+
+            // Resize canvas to fit container
+            const resizeCanvas = () => {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                if (timesheetData[`${userType}Signature`]) {
+                    drawSignatureFromData(userType, timesheetData[`${userType}Signature`]);
+                }
+            };
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            const getPoint = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            };
+
+            const startDrawing = (e) => {
+                e.preventDefault();
+                isDrawing = true;
+                lastPoint = getPoint(e);
+            };
+
+            const draw = (e) => {
+                e.preventDefault();
+                if (!isDrawing) return;
+                const currentPoint = getPoint(e);
+                ctx.beginPath();
+                ctx.moveTo(lastPoint.x, lastPoint.y);
+                ctx.lineTo(currentPoint.x, currentPoint.y);
+                ctx.stroke();
+                lastPoint = currentPoint;
+            };
+
+            const stopDrawing = () => {
+                isDrawing = false;
+                lastPoint = null;
+                timesheetData[`${userType}Signature`] = canvas.toDataURL('image/png');
+                saveDataToFirestore();
+            };
+
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDrawing);
+        }
+
+        window.clearSignature = function(userType) {
+            const canvasId = userType === 'employee' ? 'employeeSignatureCanvas' : 'supervisorSignatureCanvas';
+            const canvas = document.getElementById(canvasId);
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                timesheetData[`${userType}Signature`] = "";
+                saveDataToFirestore();
+            }
+        }
+        
+        function drawSignatureFromData(userType, dataUrl) {
+            const canvasId = userType === 'employee' ? 'employeeSignatureCanvas' : 'supervisorSignatureCanvas';
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || !dataUrl) return;
+
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => {
+                // To maintain aspect ratio, we'll draw the image based on its size
+                const hRatio = canvas.width / img.width;
+                const vRatio = canvas.height / img.height;
+                const ratio = Math.min(hRatio, vRatio);
+                const centerShiftX = (canvas.width - img.width * ratio) / 2;
+                const centerShiftY = (canvas.height - img.height * ratio) / 2;
+                ctx.drawImage(img, 0, 0, img.width, img.height, centerShiftX, centerShiftY, img.width * ratio, img.height * ratio);
+            };
+            img.src = dataUrl;
+        }
 
         // Firestore functions
         window.saveDataToFirestore = async function() {
@@ -365,6 +539,11 @@
             timesheetData.siteName = document.getElementById('siteName').value;
             timesheetData.employeePosition = document.getElementById('employeePosition').value;
             timesheetData.supervisorPosition = document.getElementById('supervisorPosition').value;
+            timesheetData.weekEndDate = document.getElementById('weekEndDate').value;
+            timesheetData.employeeId = document.getElementById('employeeId').value;
+            timesheetData.state = document.getElementById('state').value;
+            
+            // The signature data is already updated by the drawing function
 
             try {
                 const timesheetDocRef = doc(db, 'artifacts', appId, 'users', userId, 'timesheets', 'userTimesheet');
