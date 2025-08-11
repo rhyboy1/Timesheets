@@ -281,16 +281,16 @@
             timesheetData.tasks.forEach((task, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><input type="text" data-row-index="${index}" data-field="projectName" value="${task.projectName}"></td>
-                    <td><input type="text" data-row-index="${index}" data-field="jobNumber" value="${task.jobNumber}"></td>
-                    <td><input type="text" data-row-index="${index}" data-field="description" value="${task.description}"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="mon" value="${task.mon}" step="0.1" min="0"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="tue" value="${task.tue}" step="0.1" min="0"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="wed" value="${task.wed}" step="0.1" min="0"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="thu" value="${task.thu}" step="0.1" min="0"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="fri" value="${task.fri}" step="0.1" min="0"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="sat" value="${task.sat}" step="0.1" min="0"></td>
-                    <td><input type="number" data-row-index="${index}" data-day="sun" value="${task.sun}" step="0.1" min="0"></td>
+                    <td><input type="text" data-row-index="${index}" data-field="projectName" value="${task.projectName || ''}"></td>
+                    <td><input type="text" data-row-index="${index}" data-field="jobNumber" value="${task.jobNumber || ''}"></td>
+                    <td><input type="text" data-row-index="${index}" data-field="description" value="${task.description || ''}"></td>
+                    <td><input type="number" data-row-index="${index}" data-day="mon" value="${task.mon || ''}" step="0.1" min="0"></td>
+                    <td><input type="number" data-row-index="${index}" data-day="tue" value="${task.tue || ''}" step="0.1" min="0"></td>
+                    <td><input type="number" data-row-index="${index}" data-day="wed" value="${task.wed || ''}" step="0.1" min="0"></td>
+                    <td><input type="number" data-row-index="${index}" data-day="thu" value="${task.thu || ''}" step="0.1" min="0"></td>
+                    <td><input type="number" data-row-index="${index}" data-day="fri" value="${task.fri || ''}" step="0.1" min="0"></td>
+                    <td><input type="number" data-row-index="${index}" data-day="sat" value="${task.sat || ''}" step="0.1" min="0"></td>
+                    <td><input type="number" data-row-index="${index}" data-day="sun" value="${task.sun || ''}" step="0.1" min="0"></td>
                 `;
                 timesheetBody.appendChild(row);
             });
@@ -313,6 +313,7 @@
 
             timesheetData.tasks.forEach(task => {
                 days.forEach((day, index) => {
+                    // Ensure the value is a number before adding it
                     const hours = parseFloat(task[day]) || 0;
                     dailyTotals[index] += hours;
                     grandTotal += hours;
@@ -334,7 +335,12 @@
             const rowIndex = input.dataset.rowIndex;
             const field = input.dataset.field;
             const day = input.dataset.day;
-            const value = input.type === 'number' ? parseFloat(input.value) || '' : input.value;
+
+            let value = input.value;
+            // Crucial fix: Treat empty number inputs as 0 for calculation, but save as empty string for display
+            if (input.type === 'number') {
+                value = input.value === '' ? '' : parseFloat(input.value) || 0;
+            }
 
             if (rowIndex !== undefined && (field || day)) {
                 // This is a task row input
@@ -363,7 +369,7 @@
             try {
                 const timesheetDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'timesheets', userId);
                 // Use a shallow copy to prevent potential mutation issues
-                const dataToSave = { ...timesheetData };
+                const dataToSave = JSON.parse(JSON.stringify(timesheetData));
                 await setDoc(timesheetDocRef, dataToSave, { merge: true });
             } catch (error) {
                 console.error("Error saving data:", error);
