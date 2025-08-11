@@ -133,7 +133,7 @@
 
         // Global variables provided by the Canvas environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'standalone-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
 
         let timesheetData = {
@@ -512,6 +512,27 @@
 
         // Initialize Firebase and set up event listeners on DOMContentLoaded
         document.addEventListener('DOMContentLoaded', async () => {
+            const showFatalError = (msg) => {
+                loadingScreen.style.display = 'none';
+                appContainer.style.display = 'block';
+                showMessage(msg, 'bg-red-100 text-red-800 border-red-200');
+            };
+
+            let firebaseConfig;
+            try {
+                if (!firebaseConfigString) {
+                    throw new Error('Firebase configuration is missing from the environment. The app cannot initialize.');
+                }
+                firebaseConfig = JSON.parse(firebaseConfigString);
+                if (!firebaseConfig.apiKey) {
+                    throw new Error('Firebase API key is missing. The app cannot initialize.');
+                }
+            } catch (error) {
+                console.error("Configuration Error:", error);
+                showFatalError(`Initialization failed: ${error.message}`);
+                return;
+            }
+
             try {
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
@@ -549,9 +570,7 @@
                 });
             } catch (error) {
                 console.error("Error initializing Firebase:", error);
-                loadingScreen.style.display = 'none';
-                appContainer.style.display = 'block';
-                showMessage('Failed to initialize the app. Please try again.', 'bg-red-100 text-red-800 border-red-200');
+                showFatalError('Failed to initialize the app. Please try again.');
             }
 
             // Event listeners for top-level fields
