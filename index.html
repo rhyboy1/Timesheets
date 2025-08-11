@@ -367,7 +367,7 @@
             document.getElementById('employeeId').value = timesheetData.employeeId || '';
             document.getElementById('state').value = timesheetData.state || '';
             
-            // Reset signature pads and draw if data exists
+            // Set up signature pads and draw signatures from saved data
             setupSignaturePad('employee');
             setupSignaturePad('supervisor');
             if (timesheetData.employeeSignature) {
@@ -441,11 +441,15 @@
             // Resize canvas to fit container
             const resizeCanvas = () => {
                 const rect = canvas.getBoundingClientRect();
+                const wasDrawing = isDrawing;
+                isDrawing = false;
+                const prevSignature = timesheetData[`${userType}Signature`];
                 canvas.width = rect.width;
                 canvas.height = rect.height;
-                if (timesheetData[`${userType}Signature`]) {
-                    drawSignatureFromData(userType, timesheetData[`${userType}Signature`]);
+                if (prevSignature) {
+                    drawSignatureFromData(userType, prevSignature);
                 }
+                isDrawing = wasDrawing;
             };
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
@@ -478,6 +482,7 @@
             };
 
             const stopDrawing = () => {
+                if (!isDrawing) return; // Prevent multiple saves on mouseup/mouseout
                 isDrawing = false;
                 lastPoint = null;
                 timesheetData[`${userType}Signature`] = canvas.toDataURL('image/png');
@@ -513,6 +518,7 @@
             const ctx = canvas.getContext('2d');
             const img = new Image();
             img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear before redrawing
                 // To maintain aspect ratio, we'll draw the image based on its size
                 const hRatio = canvas.width / img.width;
                 const vRatio = canvas.height / img.height;
@@ -556,7 +562,7 @@
         }
 
         async function loadTimesheet() {
-            if (!userId || userId === 'anonymous' || !db) {
+            if (!userId || !db) {
                 console.error("User not authenticated or Firestore not initialized.");
                 return;
             }
@@ -593,6 +599,7 @@
                         userId = user.uid;
                         document.getElementById('userIdValue').textContent = userId;
                         statusMessage.textContent = 'Authenticated successfully!';
+                        // Load timesheet data after successful authentication
                         await loadTimesheet();
                     } else {
                         statusMessage.textContent = 'Signing in...';
