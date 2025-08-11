@@ -160,10 +160,11 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase configuration provided by the user
-        const firebaseConfig = {
+        // Firebase configuration (provided by the user for reference, but environment variables are used for initialization)
+        /*
+        const userFirebaseConfig = {
             apiKey: "AIzaSyCe_ZHNcao3XUWBPBv8eQgoLpJRkp63Vwg",
             authDomain: "protechtimesheet.firebaseapp.com",
             projectId: "protechtimesheet",
@@ -171,14 +172,12 @@
             messagingSenderId: "275584089101",
             appId: "1:275584089101:web:1b8378dc32cb92ebb5e944"
         };
-        
-        // Global variables for Firebase configuration provided by the environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
-        
+        */
+
         let db;
         let auth;
         let userId;
+        let appId;
 
         // Data structure to hold timesheet data
         let timesheetData = {
@@ -337,7 +336,7 @@
 
         // Function to save data to Firestore
         async function saveDataToFirestore() {
-            if (!userId) return; // Don't save if not authenticated
+            if (!userId || !appId) return; // Don't save if not authenticated or if appId is missing
             try {
                 const timesheetDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'timesheets', userId);
                 // Use a shallow copy to prevent potential mutation issues
@@ -383,15 +382,19 @@
         // --- Firestore & Auth Initialization ---
         const initializeAppAndAuth = async () => {
             try {
-                // Check if the firebaseConfig object is valid
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
+                appId = typeof __app_id !== 'undefined' ? __app_id : null;
+                
+                // If firebaseConfig or projectId are not available, we can't proceed.
                 if (!firebaseConfig || !firebaseConfig.projectId) {
-                    throw new Error("Firebase config is missing or invalid.");
+                    throw new Error("Firebase configuration is missing or invalid. The app cannot be initialized.");
                 }
 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-
+                
                 // Sign in with custom token or anonymously
                 const signInWithToken = async () => {
                     try {
@@ -446,7 +449,7 @@
 
             } catch (error) {
                 console.error("Failed to initialize the app:", error);
-                showMessage(`Failed to initialize. Check your config. Error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
+                showMessage(`Failed to initialize. Error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
             }
         };
         
