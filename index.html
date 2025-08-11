@@ -94,8 +94,6 @@
             <h2 class="text-2xl font-bold text-gray-700 mt-8 mb-4">Daily Entries</h2>
 
             <div id="dailyEntriesContainer" class="space-y-4">
-                <!-- STATIC HTML for all daily entries to ensure they render correctly -->
-
                 <!-- MONDAY -->
                 <div class="bg-white p-4 rounded-xl shadow-md border-t-4 border-blue-500 transition-all hover:shadow-xl">
                     <h3 class="text-xl font-bold text-gray-700 mb-2">Monday</h3>
@@ -114,16 +112,53 @@
                             </select>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="0" data-field="start" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="0" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="0" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="0" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="0" data-field="end" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="0" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="0" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="0" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="0" data-field="meal" value="00:30" />
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="0" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="0" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
@@ -174,16 +209,53 @@
                             </select>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="1" data-field="start" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="1" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="1" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="1" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="1" data-field="end" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="1" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="1" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="1" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="1" data-field="meal" value="00:30" />
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="1" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="1" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
@@ -234,16 +306,53 @@
                             </select>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="2" data-field="start" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="2" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="2" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="2" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="2" data-field="end" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="2" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="2" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="2" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="2" data-field="meal" value="00:30" />
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="2" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="2" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
@@ -294,16 +403,53 @@
                             </select>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="3" data-field="start" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="3" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="3" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="3" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="3" data-field="end" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="3" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="3" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="3" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="3" data-field="meal" value="00:30" />
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="3" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="3" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
@@ -354,16 +500,53 @@
                             </select>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="4" data-field="start" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="4" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="4" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="4" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="4" data-field="end" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="4" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="4" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="4" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="4" data-field="meal" value="00:30" />
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="4" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="4" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
@@ -414,16 +597,53 @@
                             </select>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="5" data-field="start" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="5" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="5" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="5" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="5" data-field="end" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="5" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="5" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="5" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="5" data-field="meal" value="00:30" />
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="5" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="5" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
@@ -474,16 +694,53 @@
                             </select>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="6" data-field="start" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">Start Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="6" data-field="start_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="6" data-field="start_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="6" data-field="start_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (24h):</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="6" data-field="end" />
+                            <label class="text-xs font-semibold text-gray-500 mb-1">End Time (AM/PM):</label>
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="6" data-field="end_hour">
+                                    <option value="">HH</option>
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                    <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="6" data-field="end_minute">
+                                    <option value="">MM</option>
+                                    <option>00</option><option>05</option><option>10</option><option>15</option><option>20</option><option>25</option>
+                                    <option>30</option><option>35</option><option>40</option><option>45</option><option>50</option><option>55</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/3" data-index="6" data-field="end_period">
+                                    <option value="">--</option>
+                                    <option>AM</option><option>PM</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Meal Break:</label>
-                            <input type="time" class="p-2 border border-gray-300 rounded-lg text-sm" data-index="6" data-field="meal" value="00:30" />
+                            <div class="flex space-x-1">
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="6" data-field="meal_hour">
+                                    <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option>
+                                </select>
+                                <select class="p-2 border border-gray-300 rounded-lg text-sm w-1/2" data-index="6" data-field="meal_minute">
+                                    <option>00</option><option>15</option><option>30</option><option>45</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-xs font-semibold text-gray-500 mb-1">Total Hours:</label>
@@ -568,7 +825,8 @@
             state: '', employeeSignature: '', supervisorSignature: '',
             dailyEntries: Array(7).fill(null).map((_, i) => ({
                 day: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][i],
-                date: '', shift: '', start: '', end: '', meal: '00:30', total: '00:00', extraInfo: '',
+                date: '', shift: '', start_hour: '', start_minute: '', start_period: '', end_hour: '', end_minute: '', end_period: '',
+                meal_hour: '00', meal_minute: '30', total: '00:00', extraInfo: '',
                 laha: false, lahaMeal: false, travel: false, docket: '', supervisorInitials: ''
             })),
             totalHours: '00:00',
@@ -581,6 +839,50 @@
         const toggleTimesheetButton = document.getElementById('toggleTimesheetButton');
         const dailyEntryInputs = document.querySelectorAll('#dailyEntriesContainer input, #dailyEntriesContainer select');
         const generalInputs = document.querySelectorAll('input:not([data-index]), select:not([data-index])');
+
+        /**
+         * Converts 12-hour AM/PM to 24-hour time.
+         * @param {string} hourStr - The hour (1-12).
+         * @param {string} minuteStr - The minute (00-59).
+         * @param {string} period - 'AM' or 'PM'.
+         * @returns {string|null} The time in 'HH:MM' format or null if inputs are invalid.
+         */
+        const convertTo24Hour = (hourStr, minuteStr, period) => {
+            if (!hourStr || !minuteStr || !period) return null;
+            let hour = parseInt(hourStr, 10);
+            let minute = parseInt(minuteStr, 10);
+            
+            if (period === 'PM' && hour < 12) {
+                hour += 12;
+            } else if (period === 'AM' && hour === 12) {
+                hour = 0;
+            }
+            
+            return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        };
+
+        /**
+         * Converts 24-hour time to 12-hour AM/PM.
+         * @param {string} timeStr - The time in 'HH:MM' format.
+         * @returns {object|null} An object with hour, minute, and period, or null.
+         */
+        const convertTo12Hour = (timeStr) => {
+            if (!timeStr) return null;
+            let [hour, minute] = timeStr.split(':').map(Number);
+            let period = 'AM';
+            
+            if (hour >= 12) {
+                period = 'PM';
+                if (hour > 12) hour -= 12;
+            }
+            if (hour === 0) hour = 12;
+
+            return {
+                hour: String(hour),
+                minute: String(minute).padStart(2, '0'),
+                period: period
+            };
+        };
 
         /**
          * Shows a non-blocking message to the user.
@@ -625,9 +927,18 @@
                 if (row) {
                     row.querySelector(`[data-field="date"]`).value = entry.date || '';
                     row.querySelector(`[data-field="shift"]`).value = entry.shift || '';
-                    row.querySelector(`[data-field="start"]`).value = entry.start || '';
-                    row.querySelector(`[data-field="end"]`).value = entry.end || '';
-                    row.querySelector(`[data-field="meal"]`).value = entry.meal || '00:30';
+                    
+                    row.querySelector(`[data-field="start_hour"]`).value = entry.start_hour || '';
+                    row.querySelector(`[data-field="start_minute"]`).value = entry.start_minute || '';
+                    row.querySelector(`[data-field="start_period"]`).value = entry.start_period || '';
+
+                    row.querySelector(`[data-field="end_hour"]`).value = entry.end_hour || '';
+                    row.querySelector(`[data-field="end_minute"]`).value = entry.end_minute || '';
+                    row.querySelector(`[data-field="end_period"]`).value = entry.end_period || '';
+                    
+                    row.querySelector(`[data-field="meal_hour"]`).value = entry.meal_hour || '00';
+                    row.querySelector(`[data-field="meal_minute"]`).value = entry.meal_minute || '30';
+
                     row.querySelector(`[data-field="total"]`).value = entry.total || '00:00';
                     row.querySelector(`[data-field="extraInfo"]`).value = entry.extraInfo || '';
                     row.querySelector(`[data-field="laha"]`).checked = entry.laha;
@@ -676,16 +987,26 @@
         const calculateTotals = () => {
             let totalMinutesAll = 0;
             timesheetData.dailyEntries.forEach((entry, index) => {
-                const start = entry.start ? entry.start.split(':').map(Number) : null;
-                const end = entry.end ? entry.end.split(':').map(Number) : null;
-                const meal = entry.meal ? entry.meal.split(':').map(Number) : null;
+                const start24 = convertTo24Hour(entry.start_hour, entry.start_minute, entry.start_period);
+                const end24 = convertTo24Hour(entry.end_hour, entry.end_minute, entry.end_period);
+                
+                const mealMinutes = parseInt(entry.meal_hour, 10) * 60 + parseInt(entry.meal_minute, 10);
 
-                if (start && end && meal) {
-                    const startTime = start[0] * 60 + start[1];
-                    const endTime = end[0] * 60 + end[1];
-                    const mealTime = meal[0] * 60 + meal[1];
-                    let totalMinutes = endTime - startTime - mealTime;
-                    if (totalMinutes < 0) totalMinutes += 24 * 60; // Overnight shift
+                if (start24 && end24) {
+                    const [startHour, startMinute] = start24.split(':').map(Number);
+                    const [endHour, endMinute] = end24.split(':').map(Number);
+                    
+                    const startTime = startHour * 60 + startMinute;
+                    let endTime = endHour * 60 + endMinute;
+
+                    // Handle overnight shifts
+                    if (endTime < startTime) {
+                        endTime += 24 * 60;
+                    }
+
+                    let totalMinutes = endTime - startTime - mealMinutes;
+                    if (totalMinutes < 0) totalMinutes = 0; // Prevent negative hours
+
                     const hours = Math.floor(totalMinutes / 60);
                     const minutes = totalMinutes % 60;
                     entry.total = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
@@ -725,8 +1046,11 @@
                 } else {
                     entry[field] = target.value;
                 }
-                // FIX: Call calculateTotals after every relevant input, not just a conditional check
-                calculateTotals();
+                
+                // Recalculate totals if any time-related field changes
+                if (field.startsWith('start_') || field.startsWith('end_') || field.startsWith('meal_')) {
+                    calculateTotals();
+                }
             } else {
                 timesheetData[target.id] = target.value;
             }
@@ -871,25 +1195,33 @@
             yOffset += lineGap;
             doc.text('If this is incorrect advise your Protech Consultant immediately.', margin, yOffset);
             yOffset += lineGap * 2;
+            
+            const tableData = timesheetData.dailyEntries.map(entry => {
+                const startTime12 = convertTo12Hour(convertTo24Hour(entry.start_hour, entry.start_minute, entry.start_period));
+                const endTime12 = convertTo12Hour(convertTo24Hour(entry.end_hour, entry.end_minute, entry.end_period));
+                const mealTime = `${entry.meal_hour}:${entry.meal_minute}`;
+                const hours = `${startTime12.hour}:${startTime12.minute} ${startTime12.period} - ${endTime12.hour}:${endTime12.minute} ${endTime12.period}`;
+                
+                return [
+                    entry.day,
+                    entry.shift,
+                    entry.date,
+                    hours,
+                    mealTime,
+                    entry.total,
+                    entry.extraInfo,
+                    entry.laha ? 'Yes' : 'No',
+                    entry.lahaMeal ? 'Yes' : 'No',
+                    entry.travel ? 'Yes' : 'No',
+                    entry.docket,
+                    entry.supervisorInitials
+                ];
+            });
 
-            const tableData = timesheetData.dailyEntries.map(entry => [
-              entry.day,
-              entry.shift,
-              entry.date,
-              `${entry.start} - ${entry.end}`,
-              entry.meal,
-              entry.total,
-              entry.extraInfo,
-              entry.laha ? 'Yes' : 'No',
-              entry.lahaMeal ? 'Yes' : 'No',
-              entry.travel ? 'Yes' : 'No',
-              entry.docket,
-              entry.supervisorInitials
-            ]);
 
             doc.autoTable({
               startY: yOffset,
-              head: [['Day', 'Shift', 'Date', 'Hours (24h)', 'Meal Break', 'Total', 'Extra Information', 'LAHA', 'LAHA MEAL', 'TRAVEL', 'Docket', 'Sup. Initials']],
+              head: [['Day', 'Shift', 'Date', 'Hours (AM/PM)', 'Meal Break', 'Total', 'Extra Information', 'LAHA', 'LAHA MEAL', 'TRAVEL', 'Docket', 'Sup. Initials']],
               body: tableData,
               theme: 'grid',
               styles: { fontSize: 6, cellPadding: 1, overflow: 'linebreak' },
@@ -1027,27 +1359,25 @@
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
-                        console.log('Firebase user authenticated with ID:', userId);
-
+                        
                         timesheetId = parseUrlForTimesheetId();
                         setupTimesheetListener();
                         
                         setupSignaturePad('employeeSignatureCanvas', 'employee');
                         setupSignaturePad('supervisorSignatureCanvas', 'supervisor');
 
-                        generalInputs.forEach(element => {
-                            element.addEventListener('input', handleInput);
-                            element.addEventListener('change', handleInput);
-                        });
-
                         dailyEntryInputs.forEach(element => {
-                            element.addEventListener('input', handleInput);
                             element.addEventListener('change', handleInput);
                         });
                         
                         document.getElementById('exportPdfButton').addEventListener('click', exportAsPdf);
                         document.getElementById('shareTimesheetButton').addEventListener('click', shareTimesheet);
                         document.getElementById('toggleTimesheetButton').addEventListener('click', toggleTimesheet);
+
+                        // Attach listeners to general inputs as well
+                        generalInputs.forEach(element => {
+                            element.addEventListener('change', handleInput);
+                        });
 
                         // The initial update is now handled by the onSnapshot listener, which is more reliable.
 
