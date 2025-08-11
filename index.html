@@ -163,7 +163,14 @@
 
         // Firebase-provided global variables
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+      const firebaseConfig = {
+  apiKey: "AIzaSyCe_ZHNcao3XUWBPBv8eQgoLpJRkp63Vwg",
+  authDomain: "protechtimesheet.firebaseapp.com",
+  projectId: "protechtimesheet",
+  storageBucket: "protechtimesheet.appspot.com",
+  messagingSenderId: "275584089101",
+  appId: "1:275584089101:web:1b8378dc32cb92ebb5e944"
+};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         let db, auth;
@@ -626,3 +633,4 @@
     </script>
 </body>
 </html>
+
