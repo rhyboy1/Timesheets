@@ -128,20 +128,13 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Your Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCe_ZHNcao3XUWBPBv8eQgoLpJRkp63Vwg",
-            authDomain: "protechtimesheet.firebaseapp.com",
-            projectId: "protechtimesheet",
-            storageBucket: "protechtimesheet.firebasestorage.app",
-            messagingSenderId: "275584089101",
-            appId: "1:275584089101:web:1b8378dc32cb92ebb5e944"
-        };
-        
-        const appId = 'protechtimesheet';
+        // Global variables provided by the Canvas environment
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         let timesheetData = {
             companyName: '', employeeName: '', supervisorName: '', siteName: '',
@@ -531,14 +524,18 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // Sign in anonymously to save data
-                await signInAnonymously(auth);
+                // Correctly handle authentication using the provided token
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
                     } else {
-                        // If anonymous sign-in fails for some reason, use a random ID
+                        // This case should not be reached with the current auth logic, but as a fallback
                         userId = crypto.randomUUID();
                     }
                     loadingScreen.style.display = 'none';
