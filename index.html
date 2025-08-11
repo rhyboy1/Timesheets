@@ -10,6 +10,10 @@
     <!-- PDF Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <!-- Firebase SDKs -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -131,23 +135,15 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        // YOUR FIREBASE CONFIGURATION OBJECT
-        const firebaseConfig = {
-            apiKey: "AIzaSyCe_ZHNcao3XUWBPBv8eQgoLpJRkp63Vwg",
-            authDomain: "protechtimesheet.firebaseapp.com",
-            projectId: "protechtimesheet",
-            storageBucket: "protechtimesheet.firebasestorage.app",
-            messagingSenderId: "275584089101",
-            appId: "1:275584089101:web:1b8378dc32cb92ebb5e944"
-        };
-        
-        const appId = 'protechtimesheet';
+        // Firebase configuration and app ID are provided by the environment
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         let db, auth, userId;
         const messageBox = document.getElementById('message-box');
@@ -181,8 +177,6 @@
         // Signature pad variables
         const employeeSignaturePad = document.getElementById('employee-signature-pad');
         const supervisorSignaturePad = document.getElementById('supervisor-signature-pad');
-        const ctxEmployee = employeeSignaturePad.getContext('2d');
-        const ctxSupervisor = supervisorSignaturePad.getContext('2d');
         let isDrawing = false;
         let activePad = null;
 
@@ -208,17 +202,29 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                // Sign in anonymously and get the user ID
-                const userCredential = await signInAnonymously(auth);
-                const user = userCredential.user;
-                userId = user.uid;
-                document.getElementById('user-id').textContent = userId;
-                showMessage("Successfully authenticated.", 'bg-green-100 text-green-800 border-green-200');
-                
-                // Start the Firestore listener and signature pads after successful authentication
-                startFirestoreListener();
-                setupSignaturePads();
-
+                // Start the authentication process and listen for state changes
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('user-id').textContent = userId;
+                        showMessage("Successfully authenticated.", 'bg-green-100 text-green-800 border-green-200');
+                        startFirestoreListener();
+                        setupSignaturePads();
+                    } else {
+                        // Handle the sign-in
+                        if (initialAuthToken) {
+                            signInWithCustomToken(auth, initialAuthToken).catch(error => {
+                                console.error("Error signing in with custom token:", error);
+                                showMessage(`Auth error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
+                            });
+                        } else {
+                            signInAnonymously(auth).catch(error => {
+                                console.error("Error signing in anonymously:", error);
+                                showMessage(`Auth error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
+                            });
+                        }
+                    }
+                });
             } catch (error) {
                 console.error("Failed to initialize the app:", error);
                 showMessage(`Failed to initialize. Error: ${error.message}`, 'bg-red-100 text-red-800 border-red-200');
@@ -389,9 +395,10 @@
         // Signature pad functions
         function setupSignaturePads() {
             [employeeSignaturePad, supervisorSignaturePad].forEach(canvas => {
+                if (!canvas) return; // Add a check to ensure the canvas element exists
+                const ctx = canvas.getContext('2d');
                 canvas.width = canvas.offsetWidth;
                 canvas.height = canvas.offsetHeight;
-                const ctx = canvas.getContext('2d');
                 ctx.lineWidth = 2;
                 ctx.strokeStyle = '#000000';
                 ctx.lineCap = 'round';
@@ -546,7 +553,8 @@
             doc.save('protech_timesheet.pdf');
         }
 
-        // Start the application
+        // Initial render and start the application
+        renderTimesheet();
         initializeAppAndAuth();
     </script>
 </body>
